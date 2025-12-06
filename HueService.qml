@@ -24,20 +24,41 @@ Item {
     }
 
     function initialize() {
-        checkSetup()
+        checkOpenHueAvailable((available) => {
+            if (!available) return
+            checkIsOpenHueSetup((configured) => {
+                if (!configured) return
+                refresh()
+            })
+        })
+    }
+
+    function refresh() {
+        getHueBridgeIP()
         getRooms()
     }
 
-    function checkSetup() {
+    function checkOpenHueAvailable(onComplete) {
+        Proc.runCommand(`${pluginId}.whichOpenhue`, ["which", "openhue"], (output, exitCode) => {
+            if (exitCode !== 0) {
+                setError("OpenHue is not installed. Please install it to use this plugin.")
+                ToastService.showError("OpenHue Not Found", "Please install openhue-cli to use Hue Manager")
+                onComplete(false)
+                return
+            }
+            onComplete(true)
+        }, 100)
+    }
+
+    function checkIsOpenHueSetup(onComplete) {
         Proc.runCommand(`${pluginId}.openhueGet`, ["openhue", "get"], (output, exitCode) => {
             if (output.trim().includes("please run the 'setup' command")) {
-                root.isError = true
-                root.errorMessage = "OpenHue is not set up. Please set up your Hue Bridge with 'openhue setup'."
+                setError("OpenHue is not set up. Please set up your Hue Bridge with 'openhue setup'.")
                 ToastService.showError("OpenHue Setup Required", "Please run 'openhue setup' to configure your Hue Bridge")
-                exposeUpdatedState()
-            } else {
-                getHueBridgeIP()
+                onComplete(false)
+                return
             }
+            onComplete(true)
         }, 100)
     }
 
@@ -63,6 +84,12 @@ Item {
             }
             exposeUpdatedState()
         }, 100)
+    }
+
+    function setError(message) {
+        root.isError = true
+        root.errorMessage = message
+        exposeUpdatedState()
     }
 
     function exposeUpdatedState() {
