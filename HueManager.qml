@@ -13,6 +13,7 @@ PluginComponent {
     // Internal State
     property bool isError: false
     property string errorMessage: ""
+    property bool isOpen: false
 
     // Hue State
     property string bridgeIP: ""
@@ -45,18 +46,18 @@ PluginComponent {
 
     horizontalBarPill: Component {
         DankIcon {
-          name: "light"
+          name: "lightbulb_2"
           size: Theme.barIconSize(root.barThickness, -4)
-          color: Theme.surfaceText
+          color: root.isOpen ? Theme.primary : Theme.surfaceText
           anchors.horizontalCenter: parent.horizontalCenter
         }
     }
 
     verticalBarPill: Component {
         DankIcon {
-          name: "light"
+          name: "lightbulb_2"
           size: Theme.barIconSize(root.barThickness, -4)
-          color: Theme.surfaceText
+          color: root.isOpen ? Theme.primary : Theme.surfaceText
           anchors.horizontalCenter: parent.horizontalCenter
         }
     }
@@ -64,6 +65,14 @@ PluginComponent {
     popoutContent: Component {
         PopoutComponent {
             id: popoutColumn
+
+            Component.onCompleted: {
+                root.isOpen = true
+            }
+
+            Component.onDestruction: {
+                root.isOpen = false
+            }
 
             headerText: "Phillips Hue Lights"
             detailsText: "Manage your smart lights directly on your desktop"
