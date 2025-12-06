@@ -104,9 +104,11 @@ PluginComponent {
                 spacing: 0
                 width: parent.width
 
+                property int headerHeight: 46
+
                 Rectangle {
                     width: parent.width
-                    height: 46
+                    height: popoutColumn.headerHeight
                     color: "transparent"
 
                     Column {
@@ -128,10 +130,12 @@ PluginComponent {
                     }
 
                     Row {
+                        id: viewToggleRow
                         anchors.right: parent.right
                         anchors.rightMargin: Theme.spacingM
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: Theme.spacingS
+                        visible: !HueService.isError
 
                         ViewToggleButton {
                             iconName: "light_group"
@@ -151,16 +155,42 @@ PluginComponent {
                     }
                 }
 
-                RoomsView {
+                Loader {
                     width: parent.width
-                    height: 400
-                    visible: root.activeView === "rooms"
+                    height: root.popoutHeight - popoutColumn.headerHeight
+                    sourceComponent: HueService.isError ? errorComponent : viewComponent
                 }
+            }
 
-                LightsView {
-                    width: parent.width
-                    height: 400
-                    visible: root.activeView === "lights"
+            Component {
+                id: errorComponent
+
+                Item {
+                    StyledText {
+                        anchors.centerIn: parent
+                        text: HueService.errorMessage
+                        color: Theme.error
+                        font.pixelSize: Theme.fontSizeLarge
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
+                        width: parent.width - Theme.spacingXL * 2
+                    }
+                }
+            }
+
+            Component {
+                id: viewComponent
+
+                Item {
+                    RoomsView {
+                        anchors.fill: parent
+                        visible: root.activeView === "rooms"
+                    }
+
+                    LightsView {
+                        anchors.fill: parent
+                        visible: root.activeView === "lights"
+                    }
                 }
             }
         }
