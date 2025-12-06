@@ -78,6 +78,10 @@ PluginComponent {
                 })
             }
 
+            Component.onDestruction: {
+                root.isOpen = false
+            }
+
             Column {
                 id: popoutColumn
                 spacing: 0
