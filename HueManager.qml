@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import qs.Common
 import qs.Services
 import qs.Widgets
@@ -11,76 +10,33 @@ PluginComponent {
     id: root
     layerNamespacePlugin: "hue-manager"
 
-    // Internal State
-    property bool isError: false
-    property string errorMessage: ""
     property bool isOpen: false
 
-    // Hue State
-    property string bridgeIP: ""
-    property var rooms: []
-
     Component.onCompleted: {
-        checkSetup()
-        getRooms()
+        // Note: the import of HueService here is necessary because Singletons are lazy-loaded in QML.
+        console.log("HueService loaded with bridge:", HueService.pluginId);
     }
 
-    function checkSetup() {
-        Proc.runCommand(null, ["openhue", "get"], (output, exitCode) => {
-            if (output.trim().includes("please run the 'setup' command")) {
-              root.isError = true
-              root.errorMessage = "OpenHue is not set up. Please set up your Hue Bridge with 'openhue setup'."
-              ToastService.showError("OpenHue Setup Required", "Please run 'openhue setup' to configure your Hue Bridge")
-            } else {
-              root.isError = false
-              root.getHueBridgeIP()
-            }
-        })
-    }
-
-    function getHueBridgeIP() {
-      Proc.runCommand(null, ["openhue", "discover"], (output, exitCode) => {
-          if (exitCode === 0) {
-            root.bridgeIP = output.trim()
-          } else {
-            root.bridgeIP = "Unknown"
-          }
-      })
-    }
-
-    function getRooms() {
-      const command = "openhue get room -j | jq '[.[].GroupedLight | {Name, dimming: .HueData.dimming.brightness, on: .HueData.on.on, id: .HueData.id}]'"
-      Proc.runCommand(null, ["sh", "-c", command], (output, exitCode) => {
-          if (exitCode === 0) {
-            try {
-              root.rooms = JSON.parse(output.trim())
-            } catch (e) {
-              console.error("Failed to parse rooms JSON:", e)
-              root.rooms = []
-            }
-          } else {
-            console.error("Failed to get rooms:", output)
-            root.rooms = []
-          }
-      })
+    component HueIcon: DankIcon {
+        name: "lightbulb_2"
+        size: Theme.barIconSize(root.barThickness, -4)
+        color: {
+          if (HueService.isError) return Theme.error
+          if (root.isOpen) return Theme.primary
+          return Theme.widgetIconColor || Theme.surfaceText
+        }
     }
 
     horizontalBarPill: Component {
-        DankIcon {
-          name: "lightbulb_2"
-          size: Theme.barIconSize(root.barThickness, -4)
-          color: root.isOpen ? Theme.primary : Theme.surfaceText
-          anchors.horizontalCenter: parent.horizontalCenter
-        }
+      HueIcon {
+        anchors.horizontalCenter: parent.horizontalCenter
+      }
     }
 
     verticalBarPill: Component {
-        DankIcon {
-          name: "lightbulb_2"
-          size: Theme.barIconSize(root.barThickness, -4)
-          color: root.isOpen ? Theme.primary : Theme.surfaceText
-          anchors.horizontalCenter: parent.horizontalCenter
-        }
+      HueIcon {
+        anchors.horizontalCenter: parent.horizontalCenter
+      }
     }
 
     popoutContent: Component {
@@ -99,10 +55,10 @@ PluginComponent {
             showCloseButton: true
 
             detailsText: {
-              if (root.isError) {
+              if (HueService.isError) {
                 return ""
               } else {
-                return `Bridge IP: ${root.bridgeIP}, Rooms: ${root.rooms.length}`
+                return `Bridge IP: ${HueService.bridgeIP}, Rooms: ${HueService.rooms.length}`
               }
 
             }
@@ -110,7 +66,7 @@ PluginComponent {
             Loader {
                 width: parent.width
                 height: root.popoutHeight - popoutColumn.headerHeight - popoutColumn.detailsHeight - Theme.spacingXL
-                sourceComponent: root.isError ? errorComponent : lightsComponent
+                sourceComponent: HueService.isError ? errorComponent : lightsComponent
             }
 
             Component {
@@ -119,7 +75,7 @@ PluginComponent {
                 Item {
                     StyledText {
                         anchors.centerIn: parent
-                        text: root.errorMessage
+                        text: HueService.errorMessage
                         color: Theme.error
                         font.pixelSize: Theme.fontSizeLarge
                         horizontalAlignment: Text.AlignHCenter
