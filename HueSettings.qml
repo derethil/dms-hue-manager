@@ -24,24 +24,24 @@ PluginSettings {
     }
 
     StyledRect {
-      width: parent.width
-      height: settingsColumn.implicitHeight + Theme.spacingL * 2
-      radius: Theme.cornerRadius
-      color: Theme.surfaceContainerHigh
+        width: parent.width
+        height: settingsColumn.implicitHeight + Theme.spacingL * 2
+        radius: Theme.cornerRadius
+        color: Theme.surfaceContainerHigh
 
-      Column {
-          id: settingsColumn
-          anchors.fill: parent
-          anchors.margins: Theme.spacingL
-          spacing: Theme.spacingM
+        Column {
+            id: settingsColumn
+            anchors.fill: parent
+            anchors.margins: Theme.spacingL
+            spacing: Theme.spacingM
 
-          StyledText {
-              width: parent.width
-              text: "No configurable settings available at this time."
-              font.pixelSize: Theme.fontSizeMedium
-              color: Theme.surfaceText
-              wrapMode: Text.WordWrap
-          }
-      }
+            StyledText {
+                width: parent.width
+                text: "No configurable settings available at this time."
+                font.pixelSize: Theme.fontSizeMedium
+                color: Theme.surfaceText
+                wrapMode: Text.WordWrap
+            }
+        }
     }
 }

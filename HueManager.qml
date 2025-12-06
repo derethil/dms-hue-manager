@@ -21,78 +21,112 @@ PluginComponent {
         name: "lightbulb_2"
         size: Theme.barIconSize(root.barThickness, -4)
         color: {
-          if (HueService.isError) return Theme.error
-          if (root.isOpen) return Theme.primary
-          return Theme.widgetIconColor || Theme.surfaceText
+            if (HueService.isError) return Theme.error
+            if (root.isOpen) return Theme.primary
+            return Theme.widgetIconColor || Theme.surfaceText
         }
     }
 
     horizontalBarPill: Component {
-      HueIcon {
-        anchors.horizontalCenter: parent.horizontalCenter
-      }
+        HueIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
     }
 
     verticalBarPill: Component {
-      HueIcon {
-        anchors.horizontalCenter: parent.horizontalCenter
-      }
+        HueIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
+
+    component ViewToggleButton: Rectangle {
+        property string iconName: ""
+        property bool isActive: false
+        signal clicked
+
+        width: 36
+        height: 36
+        radius: Theme.cornerRadius
+        color: isActive ? Theme.primaryHover : mouseArea.containsMouse ? Theme.surfaceHover : "transparent"
+
+        DankIcon {
+            anchors.centerIn: parent
+            name: iconName
+            size: 18
+            color: isActive ? Theme.primary : Theme.surfaceText
+        }
+
+        MouseArea {
+            id: mouseArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: parent.clicked()
+        }
     }
 
     popoutContent: Component {
-        PopoutComponent {
-            id: popoutColumn
+        FocusScope {
+            implicitWidth: popoutColumn.implicitWidth
+            implicitHeight: popoutColumn.implicitHeight
+            focus: true
 
             Component.onCompleted: {
-                root.isOpen = true
+                Qt.callLater(() => {
+                    root.isOpen = true
+                    forceActiveFocus();
+                })
             }
 
-            Component.onDestruction: {
-                root.isOpen = false
-            }
-
-            headerText: "Phillips Hue Lights"
-            showCloseButton: true
-
-            detailsText: {
-              if (HueService.isError) {
-                return ""
-              } else {
-                return `Bridge IP: ${HueService.bridgeIP}, Rooms: ${HueService.rooms.length}`
-              }
-
-            }
-
-            Loader {
+            Column {
+                id: popoutColumn
+                spacing: 0
                 width: parent.width
-                height: root.popoutHeight - popoutColumn.headerHeight - popoutColumn.detailsHeight - Theme.spacingXL
-                sourceComponent: HueService.isError ? errorComponent : lightsComponent
-            }
 
-            Component {
-                id: errorComponent
+                Rectangle {
+                    width: parent.width
+                    height: 46
+                    color: "transparent"
 
-                Item {
-                    StyledText {
-                        anchors.centerIn: parent
-                        text: HueService.errorMessage
-                        color: Theme.error
-                        font.pixelSize: Theme.fontSizeLarge
-                        horizontalAlignment: Text.AlignHCenter
-                        wrapMode: Text.WordWrap
-                        width: parent.width - Theme.spacingXL * 2
+                    Column {
+                        anchors.left: parent.left
+                        anchors.leftMargin: Theme.spacingM
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        StyledText {
+                            text: "Phillips Hue Lights"
+                            font.pixelSize: Theme.fontSizeLarge
+                            color: Theme.surfaceText
+                        }
+
+                        StyledText {
+                            text: HueService.isError ? "" : `Bridge IP: ${HueService.bridgeIP}, Rooms: ${HueService.rooms.length}`
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceVariantText
+                        }
                     }
-                }
-            }
 
-            Component {
-                id: lightsComponent
+                    Row {
+                        anchors.right: parent.right
+                        anchors.rightMargin: Theme.spacingM
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: Theme.spacingS
 
-                Item {
-                    StyledText {
-                        anchors.centerIn: parent
-                        text: "Light control will go here!"
-                        font.pixelSize: Theme.fontSizeLarge
+                        ViewToggleButton {
+                            iconName: "light_group"
+                            isActive: false
+                            onClicked: {
+                                HueService.initialize()
+                            }
+                        }
+
+                        ViewToggleButton {
+                            iconName: "floor_lamp"
+                            isActive: false
+                            onClicked: {
+                                HueService.initialize()
+                            }
+                        }
                     }
                 }
             }
