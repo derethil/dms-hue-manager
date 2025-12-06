@@ -8,7 +8,7 @@
     pkgs.watchexec
   ];
 
-  processes.reload.exec = "watchexec -e qml -- dms ipc call plugins reload HueManager";
+  processes.reload.exec = "watchexec -e qml -- 'dms ipc call plugins disable HueManager && dms ipc call plugins enable HueManager && dms ipc call plugins reload HueManager'";
 
   enterShell =
     /*
