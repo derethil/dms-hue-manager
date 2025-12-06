@@ -9,32 +9,24 @@ PluginComponent {
 
     layerNamespacePlugin: "emoji-launcher"
 
-    property var displayedEmojis: ["😊", "😢", "❤️"]
+    property bool isActive: false
+
 
     horizontalBarPill: Component {
-        Row {
-            spacing: Theme.spacingXS
-            Repeater {
-                model: root.displayedEmojis
-                StyledText {
-                    text: modelData
-                    font.pixelSize: Theme.fontSizeLarge
-                }
-            }
+        DankIcon {
+          name: "lightbulb"
+          size: Theme.barIconSize(root.barThickness, -4)
+          color: Theme.surfaceText
+          anchors.horizontalCenter: parent.horizontalCenter
         }
     }
 
     verticalBarPill: Component {
-        Column {
-            spacing: Theme.spacingXS
-            Repeater {
-                model: root.displayedEmojis
-                StyledText {
-                    text: modelData
-                    font.pixelSize: Theme.fontSizeMedium
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-            }
+        DankIcon {
+          name: "lightbulb"
+          size: Theme.barIconSize(root.barThickness, -4)
+          color: Theme.surfaceText
+          anchors.horizontalCenter: parent.horizontalCenter
         }
     }
 

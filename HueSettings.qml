@@ -5,7 +5,7 @@ import qs.Widgets
 
 PluginSettings {
     id: root
-    pluginId: "myPlugin"
+    pluginId: "HueManager"
 
     StyledText {
         width: parent.width
