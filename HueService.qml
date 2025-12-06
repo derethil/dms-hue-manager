@@ -36,7 +36,6 @@ Item {
                 ToastService.showError("OpenHue Setup Required", "Please run 'openhue setup' to configure your Hue Bridge")
                 exposeUpdatedState()
             } else {
-                root.isError = false
                 getHueBridgeIP()
             }
         }, 100)

@@ -11,6 +11,7 @@ PluginComponent {
     layerNamespacePlugin: "hue-manager"
 
     property bool isOpen: false
+    property string activeView: "rooms"
 
     Component.onCompleted: {
         // Note: the import of HueService here is necessary because Singletons are lazy-loaded in QML.
@@ -24,18 +25,6 @@ PluginComponent {
             if (HueService.isError) return Theme.error
             if (root.isOpen) return Theme.primary
             return Theme.widgetIconColor || Theme.surfaceText
-        }
-    }
-
-    horizontalBarPill: Component {
-        HueIcon {
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
-    }
-
-    verticalBarPill: Component {
-        HueIcon {
-            anchors.horizontalCenter: parent.horizontalCenter
         }
     }
 
@@ -62,6 +51,34 @@ PluginComponent {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: parent.clicked()
+        }
+    }
+
+    component RoomsView: Item {
+        StyledText {
+            anchors.centerIn: parent
+            text: "Rooms View"
+            color: Theme.surfaceText
+        }
+    }
+
+    component LightsView: Item {
+        StyledText {
+            anchors.centerIn: parent
+            text: "Lights View"
+            color: Theme.surfaceText
+        }
+    }
+
+    horizontalBarPill: Component {
+        HueIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+    }
+
+    verticalBarPill: Component {
+        HueIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
         }
     }
 
@@ -118,20 +135,32 @@ PluginComponent {
 
                         ViewToggleButton {
                             iconName: "light_group"
-                            isActive: false
+                            isActive: root.activeView === "rooms"
                             onClicked: {
-                                HueService.initialize()
+                                root.activeView = "rooms"
                             }
                         }
 
                         ViewToggleButton {
                             iconName: "floor_lamp"
-                            isActive: false
+                            isActive: root.activeView === "lights"
                             onClicked: {
-                                HueService.initialize()
+                                root.activeView = "lights"
                             }
                         }
                     }
+                }
+
+                RoomsView {
+                    width: parent.width
+                    height: 400
+                    visible: root.activeView === "rooms"
+                }
+
+                LightsView {
+                    width: parent.width
+                    height: 400
+                    visible: root.activeView === "lights"
                 }
             }
         }
