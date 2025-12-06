@@ -1,4 +1,6 @@
 import QtQuick
+import Quickshell
+import Quickshell.Io
 import qs.Common
 import qs.Services
 import qs.Widgets
@@ -6,15 +8,44 @@ import qs.Modules.Plugins
 
 PluginComponent {
     id: root
+    layerNamespacePlugin: "hue-manager"
 
-    layerNamespacePlugin: "emoji-launcher"
+    // Internal State
+    property bool isError: false
+    property string errorMessage: ""
 
-    property bool isActive: false
+    // Hue State
+    property string bridgeIP: ""
 
+    Component.onCompleted: {
+        checkSetup()
+    }
+
+    function checkSetup() {
+        Proc.runCommand(null, ["openhue", "get"], (output, exitCode) => {
+            if (output.trim().includes("please run the 'setup' command")) {
+              root.isError = true
+              root.errorMessage = "OpenHue is not set up. Please set up your Hue Bridge with 'openhue setup'."
+            } else {
+              root.isError = false
+              root.getHueBridgeIP()
+            }
+        })
+    }
+
+    function getHueBridgeIP() {
+      Proc.runCommand(null, ["openhue", "discover"], (output, exitCode) => {
+          if (exitCode === 0) {
+            root.bridgeIP = output.trim()
+          } else {
+            root.bridgeIP = "Unknown"
+          }
+      })
+    }
 
     horizontalBarPill: Component {
         DankIcon {
-          name: "lightbulb"
+          name: "light"
           size: Theme.barIconSize(root.barThickness, -4)
           color: Theme.surfaceText
           anchors.horizontalCenter: parent.horizontalCenter
@@ -23,7 +54,7 @@ PluginComponent {
 
     verticalBarPill: Component {
         DankIcon {
-          name: "lightbulb"
+          name: "light"
           size: Theme.barIconSize(root.barThickness, -4)
           color: Theme.surfaceText
           anchors.horizontalCenter: parent.horizontalCenter
@@ -34,53 +65,40 @@ PluginComponent {
         PopoutComponent {
             id: popoutColumn
 
-            headerText: "Emoji Picker"
-            detailsText: "Click an emoji to copy it"
+            headerText: "Phillips Hue Lights"
+            detailsText: "Manage your smart lights directly on your desktop"
             showCloseButton: true
 
-            property var allEmojis: [
-                "😀", "😃", "😄", "😁", "😆", "🤣",
-                "❤️", "🧡", "💛", "💚", "💙", "💜"
-            ]
-
-            Item {
+            Loader {
                 width: parent.width
-                implicitHeight: root.popoutHeight - popoutColumn.headerHeight -
-                               popoutColumn.detailsHeight - Theme.spacingXL
+                height: root.popoutHeight - popoutColumn.headerHeight - popoutColumn.detailsHeight - Theme.spacingXL
+                sourceComponent: root.isError ? errorComponent : lightsComponent
+            }
 
-                DankGridView {
-                    anchors.fill: parent
-                    cellWidth: 50
-                    cellHeight: 50
-                    model: popoutColumn.allEmojis
+            Component {
+                id: errorComponent
 
-                    delegate: StyledRect {
-                        width: 45
-                        height: 45
-                        radius: Theme.cornerRadius
-                        color: emojiMouse.containsMouse ?
-                               Theme.surfaceContainerHighest :
-                               Theme.surfaceContainerHigh
+                Item {
+                    StyledText {
+                        anchors.centerIn: parent
+                        text: root.errorMessage
+                        color: Theme.error
+                        font.pixelSize: Theme.fontSizeLarge
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
+                        width: parent.width - Theme.spacingXL * 2
+                    }
+                }
+            }
 
-                        StyledText {
-                            anchors.centerIn: parent
-                            text: modelData
-                            font.pixelSize: Theme.fontSizeXLarge
-                        }
+            Component {
+                id: lightsComponent
 
-                        MouseArea {
-                            id: emojiMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-
-                            onClicked: {
-                                Quickshell.execDetached(["sh", "-c",
-                                    "echo -n '" + modelData + "' | wl-copy"])
-                                ToastService.showInfo("Copied " + modelData)
-                                popoutColumn.closePopout()
-                            }
-                        }
+                Item {
+                    StyledText {
+                        anchors.centerIn: parent
+                        text: "Light control will go here!"
+                        font.pixelSize: Theme.fontSizeLarge
                     }
                 }
             }
