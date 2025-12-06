@@ -27,6 +27,7 @@ PluginComponent {
             if (output.trim().includes("please run the 'setup' command")) {
               root.isError = true
               root.errorMessage = "OpenHue is not set up. Please set up your Hue Bridge with 'openhue setup'."
+              ToastService.showError("OpenHue Setup Required", "Please run 'openhue setup' to configure your Hue Bridge")
             } else {
               root.isError = false
               root.getHueBridgeIP()
@@ -75,8 +76,16 @@ PluginComponent {
             }
 
             headerText: "Phillips Hue Lights"
-            detailsText: "Manage your smart lights directly on your desktop"
             showCloseButton: true
+
+            detailsText: {
+              if (root.isError) {
+                return ""
+              } else {
+                return `Bridge IP: ${root.bridgeIP}`
+              }
+
+            }
 
             Loader {
                 width: parent.width
