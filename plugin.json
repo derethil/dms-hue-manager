@@ -3,7 +3,7 @@
   "name": "Hue Manager",
   "description": "Control your Philips Hue lights directly from DMS.",
   "version": "1.0.0",
-  "author": "Jaren Glenn",
+  "author": "derethil",
   "icon": "widgets",
   "type": "widget",
   "component": "./HueManager.qml",
