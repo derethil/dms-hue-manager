@@ -35,12 +35,12 @@ PluginSettings {
             anchors.margins: Theme.spacingL
             spacing: Theme.spacingM
 
-            StyledText {
-                width: parent.width
-                text: "No configurable settings available at this time."
-                font.pixelSize: Theme.fontSizeMedium
-                color: Theme.surfaceText
-                wrapMode: Text.WordWrap
+            StringSetting {
+                settingKey: "openHuePath"
+                label: "OpenHue Path"
+                description: "Path or name of the openhue cli executable."
+                defaultValue: HueService.defaults.openHuePath
+                placeholder: HueService.defaults.openHuePath
             }
         }
     }

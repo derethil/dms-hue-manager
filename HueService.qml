@@ -11,11 +11,16 @@ Item {
 
     readonly property string pluginId: "hueManager"
 
-    // Error State
+    readonly property var defaults: ({
+        openHuePath: "openhue"
+    })
+
+
     property bool isError: false
     property string errorMessage: ""
 
-    // Hue State
+    property string openHuePath: defaults.openHuePath
+
     property string bridgeIP: ""
     property var rooms: []
 
@@ -24,6 +29,7 @@ Item {
     }
 
     function initialize() {
+        loadSettings()
         checkOpenHueAvailable((available) => {
             if (!available) return
             checkIsOpenHueSetup((configured) => {
@@ -33,16 +39,21 @@ Item {
         })
     }
 
+    function loadSettings() {
+        const load = (key) => PluginService.loadPluginData(pluginId, key) || defaults[key]
+        openHuePath = load("openHuePath")
+    }
+
     function refresh() {
         getHueBridgeIP()
         getRooms()
     }
 
     function checkOpenHueAvailable(onComplete) {
-        Proc.runCommand(`${pluginId}.whichOpenhue`, ["which", "openhue"], (output, exitCode) => {
+        Proc.runCommand(`${pluginId}.whichOpenhue`, ["which", openHuePath], (output, exitCode) => {
             if (exitCode !== 0) {
                 setError("OpenHue is not installed. Please install it to use this plugin.")
-                ToastService.showError("OpenHue Not Found", "Please install openhue-cli to use Hue Manager")
+                ToastService.showError("OpenHue Not Found", "Please install openhue-cli or set the OpenHue Path option to use Hue Manager")
                 onComplete(false)
                 return
             }
@@ -51,7 +62,7 @@ Item {
     }
 
     function checkIsOpenHueSetup(onComplete) {
-        Proc.runCommand(`${pluginId}.openhueGet`, ["openhue", "get"], (output, exitCode) => {
+        Proc.runCommand(`${pluginId}.openhueGet`, [openHuePath, "get"], (output, exitCode) => {
             if (output.trim().includes("please run the 'setup' command")) {
                 setError("OpenHue is not set up. Please set up your Hue Bridge with 'openhue setup'.")
                 ToastService.showError("OpenHue Setup Required", "Please run 'openhue setup' to configure your Hue Bridge")
@@ -63,14 +74,14 @@ Item {
     }
 
     function getHueBridgeIP() {
-        Proc.runCommand(`${pluginId}.openhueDiscover`, ["openhue", "discover"], (output, exitCode) => {
+        Proc.runCommand(`${pluginId}.openhueDiscover`, [openHuePath, "discover"], (output, exitCode) => {
             root.bridgeIP = exitCode === 0 ? output.trim() : "Unknown"
             exposeUpdatedState()
         }, 100)
     }
 
     function getRooms() {
-        const command = "openhue get room -j | jq '[.[].GroupedLight | {Name, dimming: .HueData.dimming.brightness, on: .HueData.on.on, id: .HueData.id}]'"
+        const command = `${openHuePath} get room -j | jq '[.[].GroupedLight | {Name, dimming: .HueData.dimming.brightness, on: .HueData.on.on, id: .HueData.id}]'`
         Proc.runCommand(`${pluginId}.openhueRooms`, ["sh", "-c", command], (output, exitCode) => {
             if (exitCode === 0) {
                 try {
@@ -95,6 +106,7 @@ Item {
     function exposeUpdatedState() {
         PluginService.setGlobalVar(pluginId, "bridgeIP", bridgeIP)
         PluginService.setGlobalVar(pluginId, "rooms", rooms)
+
         PluginService.setGlobalVar(pluginId, "isError", isError)
         PluginService.setGlobalVar(pluginId, "errorMessage", errorMessage)
     }
