@@ -16,6 +16,7 @@ QtObject {
 
     function togglePower() {
         entity.on = !entity.on;
+        entity.dimming = entity.on ? 100 : 0;
         _service.applyEntityPower(entity, entity.on);
     }
 

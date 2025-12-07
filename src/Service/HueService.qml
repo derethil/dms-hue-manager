@@ -151,24 +151,25 @@ Item {
     }
 
     function applyEntityPower(entity, turnOn) {
+        refreshTimer.restart();
         const state = turnOn ? "--on" : "--off";
         Proc.runCommand(`${pluginId}.setEntityPower`, [openHuePath, "set", entity.entityType, entity.entityId, state], (output, exitCode) => {
-            if (output == "") {
-                Qt.callLater(refresh);
-            } else {
-                ToastService.showError("errored", output);
+            if (output !== "") {
+                ToastService.showError("Hue Manager Error", `Failed to toggle ${entity.entityType} ${entity.entityId}`);
                 console.error(`HueManager: Failed to toggle ${entity.entityType} ${entity.entityId}:`, output);
+                Qt.callLater(refresh);
             }
         }, 100);
     }
 
     function applyEntityBrightness(entity, brightness) {
+        refreshTimer.restart();
         const brightnessValue = Math.round(brightness);
         Proc.runCommand(`${pluginId}.setEntityBrightness`, [openHuePath, "set", entity.entityType, entity.entityId, "--brightness", brightnessValue.toString()], (output, exitCode) => {
-            if (exitCode === "") {
-                Qt.callLater(refresh);
-            } else {
+            if (output !== "") {
+                ToastService.showError("Hue Manager Error", `Failed to set ${entity.entityType} brightness ${entity.entityId}`);
                 console.error(`HueManager: Failed to set ${entity.entityType} brightness ${entity.entityId}:`, output);
+                Qt.callLater(refresh);
             }
         }, 100);
     }
