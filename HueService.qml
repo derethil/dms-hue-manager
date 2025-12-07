@@ -81,7 +81,7 @@ Item {
     }
 
     function getRooms() {
-        const command = `${openHuePath} get room -j | jq '[.[].GroupedLight | {Name, dimming: .HueData.dimming.brightness, on: .HueData.on.on, id: .HueData.id}]'`
+        const command = `${openHuePath} get room -j | jq '[.[] | {name: .GroupedLight.Name, dimming: .GroupedLight.HueData.dimming.brightness, on: .GroupedLight.HueData.on.on, id: .Id, entityType: "room"}]'`
         Proc.runCommand(`${pluginId}.openhueRooms`, ["sh", "-c", command], (output, exitCode) => {
             if (exitCode === 0) {
                 try {
@@ -101,6 +101,29 @@ Item {
         root.isError = true
         root.errorMessage = message
         exposeUpdatedState()
+    }
+
+    function setEntityPower(entity, turnOn) {
+        const state = turnOn ? "--on" : "--off"
+        Proc.runCommand(`${pluginId}.setEntityPower`, [openHuePath, "set", entity.entityType, entity.id, state], (output, exitCode) => {
+            if (output == "") {
+                Qt.callLater(refresh)
+            } else {
+                ToastService.showError("errored", output)
+                console.error(`HueManager: Failed to toggle ${entity.entityType} ${entity.id}:`, output)
+            }
+        }, 100)
+    }
+
+    function setEntityBrightness(entity, brightness) {
+        const brightnessValue = Math.round(brightness)
+        Proc.runCommand(`${pluginId}.setEntityBrightness`, [openHuePath, "set", entity.entityType, entity.id, "--brightness", brightnessValue.toString()], (output, exitCode) => {
+            if (exitCode === "") {
+                Qt.callLater(refresh)
+            } else {
+                console.error(`HueManager: Failed to set ${entity.entityType} brightness ${entity.id}:`, output)
+            }
+        }, 100)
     }
 
     function exposeUpdatedState() {

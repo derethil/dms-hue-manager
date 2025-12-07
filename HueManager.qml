@@ -13,9 +13,15 @@ PluginComponent {
     property bool isOpen: false
     property string activeView: "rooms"
 
+    property int currentIndex: 0
+
     Component.onCompleted: {
         // Note: the import of HueService here is necessary because Singletons are lazy-loaded in QML.
         console.log("HueService loaded with bridge:", HueService.pluginId);
+    }
+
+    function toggleEntityPower(entity) {
+        HueService.setEntityPower(entity, !entity.on)
     }
 
     component HueIcon: DankIcon {
@@ -41,7 +47,7 @@ PluginComponent {
         DankIcon {
             anchors.centerIn: parent
             name: iconName
-            size: 18
+            size: Theme.iconSizeSmall
             color: isActive ? Theme.primary : Theme.surfaceText
         }
 
@@ -54,11 +60,72 @@ PluginComponent {
         }
     }
 
+    component LightingItemHeader: StyledRect {
+        property var entity: null
+        property real leftIndent: Theme.spacingM
+
+        id: lightingItemHeader
+        width: parent.width
+        height: 48
+        radius: Theme.cornerRadius
+        border.width: 0
+
+        Rectangle {
+            property var isActive: false
+
+            anchors.left: parent.left
+            width: Theme.iconSizeSmall * 2
+            height: Theme.iconSizeSmall * 2
+            color: mouseArea.containsMouse ? Theme.surfaceHover : "transparent"
+
+
+            DankIcon {
+                anchors.centerIn: parent
+                name: "light_group"
+                size: Theme.iconSize
+                color: entity.on ? Theme.primary : Theme.surfaceText
+            }
+
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    toggleEntityPower(entity)
+                }
+            }
+        }
+
+        Column {
+            anchors.right: parent.right
+
+            StyledText {
+                id: headerText
+                text: entity.name
+                font.pixelSize: Theme.fontSizeMedium
+                color: Theme.surfaceText
+            }
+        }
+    }
+
     component RoomsView: Item {
-        StyledText {
-            anchors.centerIn: parent
-            text: "Rooms View"
-            color: Theme.surfaceText
+        DankListView {
+            id: roomsList
+            width: parent.width
+            height: root.popoutHeight - 46 - Theme.spacingM * 2
+            model: HueService.rooms
+            currentIndex: root.currentIndex
+
+            delegate: Column {
+                id: roomDelegate
+                width: parent.width
+                spacing: 0
+
+                LightingItemHeader {
+                    entity: modelData
+                }
+            }
         }
     }
 
