@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import qs.Common
 import qs.Modules.Plugins
 import "./Widgets"
 
@@ -73,6 +74,7 @@ PluginComponent {
                 Loader {
                     width: parent.width
                     height: root.popoutHeight - popoutColumn.headerHeight
+
                     sourceComponent: HueService.isError ? errorComponent : viewComponent
                 }
             }
@@ -90,6 +92,7 @@ PluginComponent {
                 Item {
                     RoomsView {
                         anchors.fill: parent
+                        anchors.margins: Theme.spacingM
                         width: parent.width
                         visible: root.activeView === "rooms"
                         popoutHeight: root.popoutHeight
@@ -98,6 +101,7 @@ PluginComponent {
                     }
 
                     LightsView {
+                        anchors.margins: Theme.spacingM
                         anchors.fill: parent
                         visible: root.activeView === "lights"
                     }
