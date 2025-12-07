@@ -3,7 +3,9 @@ import qs.Common
 import qs.Widgets
 
 Rectangle {
-    property string iconName: ""
+    id: root
+
+    required property string iconName
     property bool isActive: false
     signal clicked
 
@@ -14,9 +16,9 @@ Rectangle {
 
     DankIcon {
         anchors.centerIn: parent
-        name: iconName
+        name: root.iconName
         size: Theme.iconSizeSmall
-        color: isActive ? Theme.primary : Theme.surfaceText
+        color: root.isActive ? Theme.primary : Theme.surfaceText
     }
 
     MouseArea {

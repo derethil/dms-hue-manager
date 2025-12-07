@@ -1,13 +1,13 @@
 pragma Singleton
 
 import QtQuick
-import Quickshell
-import Quickshell.Io
 import qs.Common
 import qs.Services
 
 Item {
-    id: root
+    id: service
+
+    property Component entityComponent: HueEntity {}
 
     readonly property string pluginId: "hueManager"
 
@@ -28,7 +28,7 @@ Item {
         interval: 5000
         repeat: true
         running: false
-        onTriggered: refresh()
+        onTriggered: service.refresh()
     }
 
     Component.onCompleted: {
@@ -85,9 +85,20 @@ Item {
 
     function getHueBridgeIP() {
         Proc.runCommand(`${pluginId}.openhueDiscover`, [openHuePath, "discover"], (output, exitCode) => {
-            root.bridgeIP = exitCode === 0 ? output.trim() : "Unknown";
+            service.bridgeIP = exitCode === 0 ? output.trim() : "Unknown";
             exposeUpdatedState();
         }, 100);
+    }
+
+    function createRoomObject(data) {
+        return entityComponent.createObject(service, {
+            entityId: data.id,
+            name: data.name,
+            entityType: data.entityType,
+            on: data.on,
+            dimming: data.dimming,
+            _service: service
+        });
     }
 
     function getRooms() {
@@ -95,10 +106,11 @@ Item {
         Proc.runCommand(`${pluginId}.openhueRooms`, ["sh", "-c", command], (output, exitCode) => {
             if (exitCode === 0) {
                 try {
-                    root.rooms = JSON.parse(output.trim());
+                    const rawRooms = JSON.parse(output.trim());
+                    service.rooms = rawRooms.map(createRoomObject);
                 } catch (e) {
                     console.error("HueManager: Failed to parse rooms JSON:", e);
-                    root.rooms = [];
+                    service.rooms = [];
                 }
             } else {
                 console.error("HueManager: Failed to get rooms:", output);
@@ -108,30 +120,30 @@ Item {
     }
 
     function setError(message) {
-        root.isError = true;
-        root.errorMessage = message;
+        service.isError = true;
+        service.errorMessage = message;
         exposeUpdatedState();
     }
 
-    function setEntityPower(entity, turnOn) {
+    function applyEntityPower(entity, turnOn) {
         const state = turnOn ? "--on" : "--off";
-        Proc.runCommand(`${pluginId}.setEntityPower`, [openHuePath, "set", entity.entityType, entity.id, state], (output, exitCode) => {
+        Proc.runCommand(`${pluginId}.setEntityPower`, [openHuePath, "set", entity.entityType, entity.entityId, state], (output, exitCode) => {
             if (output == "") {
                 Qt.callLater(refresh);
             } else {
                 ToastService.showError("errored", output);
-                console.error(`HueManager: Failed to toggle ${entity.entityType} ${entity.id}:`, output);
+                console.error(`HueManager: Failed to toggle ${entity.entityType} ${entity.entityId}:`, output);
             }
         }, 100);
     }
 
-    function setEntityBrightness(entity, brightness) {
+    function applyEntityBrightness(entity, brightness) {
         const brightnessValue = Math.round(brightness);
-        Proc.runCommand(`${pluginId}.setEntityBrightness`, [openHuePath, "set", entity.entityType, entity.id, "--brightness", brightnessValue.toString()], (output, exitCode) => {
+        Proc.runCommand(`${pluginId}.setEntityBrightness`, [openHuePath, "set", entity.entityType, entity.entityId, "--brightness", brightnessValue.toString()], (output, exitCode) => {
             if (exitCode === "") {
                 Qt.callLater(refresh);
             } else {
-                console.error(`HueManager: Failed to set ${entity.entityType} brightness ${entity.id}:`, output);
+                console.error(`HueManager: Failed to set ${entity.entityType} brightness ${entity.entityId}:`, output);
             }
         }, 100);
     }

@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import qs.Common
 import qs.Widgets
@@ -7,14 +8,12 @@ Item {
     property int popoutHeight: 500
     property int currentIndex: 0
     property var rooms: []
-    property var getEntityProperty: null
-    property var toggleEntityPower: null
 
     DankListView {
         id: roomsList
         width: parent.width
-        height: popoutHeight - 46 - Theme.spacingM * 2
-        model: rooms
+        height: root.popoutHeight - 46 - Theme.spacingM * 2
+        model: root.rooms
         currentIndex: parent.currentIndex
 
         delegate: Column {
@@ -23,9 +22,7 @@ Item {
             spacing: 0
 
             HueLightingItemHeader {
-                entity: modelData
-                getEntityProperty: root.getEntityProperty
-                toggleEntityPower: root.toggleEntityPower
+                entity: roomDelegate.modelData
             }
         }
     }

@@ -3,12 +3,10 @@ import qs.Common
 import qs.Widgets
 
 StyledRect {
-    id: lightingItemHeader
+    id: root
 
     property var entity: null
     property real leftIndent: Theme.spacingM
-    property var getEntityProperty: null
-    property var toggleEntityPower: null
 
     width: parent.width
     height: 48
@@ -27,7 +25,7 @@ StyledRect {
             anchors.centerIn: parent
             name: "light_group"
             size: Theme.iconSize
-            color: getEntityProperty(entity, "on") ? Theme.primary : Theme.surfaceText
+            color: root.entity.on ? Theme.primary : Theme.surfaceText
         }
 
         MouseArea {
@@ -36,7 +34,7 @@ StyledRect {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                toggleEntityPower(entity);
+                root.entity.togglePower();
             }
         }
     }
@@ -46,7 +44,7 @@ StyledRect {
 
         StyledText {
             id: headerText
-            text: entity.name
+            text: root.entity.name
             font.pixelSize: Theme.fontSizeMedium
             color: Theme.surfaceText
         }

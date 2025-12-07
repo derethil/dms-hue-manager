@@ -1,9 +1,8 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import qs.Common
-import qs.Services
 import qs.Widgets
 import qs.Modules.Plugins
-import qs.Modules.ControlCenter.Widgets
 import "./Widgets"
 
 PluginComponent {
@@ -14,43 +13,10 @@ PluginComponent {
     property string activeView: "rooms"
 
     property int currentIndex: 0
-    property var pendingChanges: ({})
 
     Component.onCompleted: {
         // Note: the import of HueService here is necessary because Singletons are lazy-loaded in QML.
         console.log("HueService loaded with bridge:", HueService.pluginId);
-    }
-
-    Connections {
-        target: HueService
-        function onRoomsChanged() {
-            root.pendingChanges = ({});
-        }
-    }
-
-    function setPendingChange(entity, propertyName, value) {
-        if (!pendingChanges[entity.id]) {
-            pendingChanges[entity.id] = {};
-        }
-        pendingChanges[entity.id][propertyName] = value;
-        pendingChangesChanged();
-    }
-
-    function getEntityProperty(entity, propertyName) {
-        if (pendingChanges[entity.id] && pendingChanges[entity.id][propertyName] !== undefined) {
-            return pendingChanges[entity.id][propertyName];
-        }
-        return entity[propertyName];
-    }
-
-    function toggleEntityPower(entity) {
-        setPendingChange(entity, "on", !entity.on);
-        HueService.setEntityPower(entity, !entity.on);
-    }
-
-    function setEntityBrightness(entity, brightness) {
-        setPendingChange(entity, "dimming", brightness);
-        HueService.setEntityBrightness(entity, brightness);
     }
 
     horizontalBarPill: Component {
@@ -177,8 +143,6 @@ PluginComponent {
                         popoutHeight: root.popoutHeight
                         currentIndex: root.currentIndex
                         rooms: HueService.rooms
-                        getEntityProperty: root.getEntityProperty
-                        toggleEntityPower: root.toggleEntityPower
                     }
 
                     HueLightsView {
