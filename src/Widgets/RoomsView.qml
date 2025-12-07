@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+import Quickshell
 import QtQuick
 import qs.Common
 import qs.Widgets
@@ -12,14 +14,18 @@ Item {
         id: roomsList
         width: parent.width
         height: root.popoutHeight - 46 - Theme.spacingM * 2
-        model: root.rooms
         currentIndex: parent.currentIndex
+
+        model: ScriptModel {
+            values: root.rooms
+            objectProp: "entityId"
+        }
 
         delegate: Column {
             id: roomDelegate
             required property var modelData
 
-            width: parent.width
+            width: root.width
             spacing: 0
 
             EntityHeader {

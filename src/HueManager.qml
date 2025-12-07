@@ -90,6 +90,7 @@ PluginComponent {
                 Item {
                     RoomsView {
                         anchors.fill: parent
+                        width: parent.width
                         visible: root.activeView === "rooms"
                         popoutHeight: root.popoutHeight
                         currentIndex: root.currentIndex

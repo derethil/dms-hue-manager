@@ -54,10 +54,7 @@ Item {
         openHuePath = load("openHuePath");
     }
 
-    function refresh() {
-        getHueBridgeIP();
-        getRooms();
-    }
+    // initial checks
 
     function checkOpenHueAvailable(onComplete) {
         Proc.runCommand(`${pluginId}.whichOpenhue`, ["which", openHuePath], (output, exitCode) => {
@@ -83,14 +80,20 @@ Item {
         }, 100);
     }
 
+    // hue operations
+
+    function refresh() {
+        getHueBridgeIP();
+        getRooms();
+    }
+
     function getHueBridgeIP() {
         Proc.runCommand(`${pluginId}.openhueDiscover`, [openHuePath, "discover"], (output, exitCode) => {
             service.bridgeIP = exitCode === 0 ? output.trim() : "Unknown";
-            exposeUpdatedState();
         }, 100);
     }
 
-    function createRoomObject(data) {
+    function createEntityObject(data) {
         return entityComponent.createObject(service, {
             entityId: data.id,
             name: data.name,
@@ -101,13 +104,37 @@ Item {
         });
     }
 
+    function updateEntity(entity, data) {
+        entity.name = data.name;
+        entity.on = data.on;
+        entity.dimming = data.dimming;
+    }
+
     function getRooms() {
-        const command = `${openHuePath} get room -j | jq '[.[] | {name: .GroupedLight.Name, dimming: .GroupedLight.HueData.dimming.brightness, on: .GroupedLight.HueData.on.on, id: .Id, entityType: "room"}]'`;
+        const command = `${openHuePath} get room -j | jq '[.[] | {name: .Name, dimming: .GroupedLight.HueData.dimming.brightness, on: .GroupedLight.HueData.on.on, id: .Id, entityType: "room"}]'`;
         Proc.runCommand(`${pluginId}.openhueRooms`, ["sh", "-c", command], (output, exitCode) => {
             if (exitCode === 0) {
                 try {
                     const rawRooms = JSON.parse(output.trim());
-                    service.rooms = rawRooms.map(createRoomObject);
+                    const updatedRooms = [];
+
+                    rawRooms.forEach(roomData => {
+                        const existing = service.rooms.find(r => r.entityId === roomData.id);
+                        if (existing) {
+                            updateEntity(existing, roomData);
+                            updatedRooms.push(existing);
+                        } else {
+                            updatedRooms.push(createEntityObject(roomData));
+                        }
+                    });
+
+                    service.rooms.forEach(room => {
+                        if (!updatedRooms.includes(room)) {
+                            room.destroy();
+                        }
+                    });
+
+                    service.rooms = updatedRooms;
                 } catch (e) {
                     console.error("HueManager: Failed to parse rooms JSON:", e);
                     service.rooms = [];
@@ -115,14 +142,12 @@ Item {
             } else {
                 console.error("HueManager: Failed to get rooms:", output);
             }
-            exposeUpdatedState();
         }, 100);
     }
 
     function setError(message) {
         service.isError = true;
         service.errorMessage = message;
-        exposeUpdatedState();
     }
 
     function applyEntityPower(entity, turnOn) {
@@ -146,13 +171,5 @@ Item {
                 console.error(`HueManager: Failed to set ${entity.entityType} brightness ${entity.entityId}:`, output);
             }
         }, 100);
-    }
-
-    function exposeUpdatedState() {
-        PluginService.setGlobalVar(pluginId, "bridgeIP", bridgeIP);
-        PluginService.setGlobalVar(pluginId, "rooms", rooms);
-
-        PluginService.setGlobalVar(pluginId, "isError", isError);
-        PluginService.setGlobalVar(pluginId, "errorMessage", errorMessage);
     }
 }
