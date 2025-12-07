@@ -1,0 +1,4 @@
+[General]
+no-cmake-calls=true
+buildDir=__BUILD_DIR__
+importPaths=__IMPORT_PATHS__
