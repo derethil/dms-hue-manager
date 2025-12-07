@@ -1,4 +1,3 @@
-pragma ComponentBehavior: Bound
 import QtQuick
 import qs.Common
 import qs.Widgets
@@ -18,10 +17,12 @@ Item {
 
         delegate: Column {
             id: roomDelegate
+            required property var modelData
+
             width: parent.width
             spacing: 0
 
-            HueLightingItemHeader {
+            EntityHeader {
                 entity: roomDelegate.modelData
             }
         }

@@ -1,7 +1,1 @@
-module Widgets
-
-HueIcon 1.0 HueIcon.qml
-HueViewToggleButton 1.0 HueViewToggleButton.qml
-HueLightingItemHeader 1.0 HueLightingItemHeader.qml
-HueRoomsView 1.0 HueRoomsView.qml
-HueLightsView 1.0 HueLightsView.qml
+singleton HueService 1.0 ../Service/HueService.qml

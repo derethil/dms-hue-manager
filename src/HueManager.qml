@@ -1,7 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import qs.Common
-import qs.Widgets
 import qs.Modules.Plugins
 import "./Widgets"
 
@@ -13,6 +11,9 @@ PluginComponent {
     property string activeView: "rooms"
 
     property int currentIndex: 0
+
+    popoutWidth: 400
+    popoutHeight: 500
 
     Component.onCompleted: {
         // Note: the import of HueService here is necessary because Singletons are lazy-loaded in QML.
@@ -61,52 +62,11 @@ PluginComponent {
 
                 property int headerHeight: 46
 
-                Rectangle {
-                    width: parent.width
-                    height: popoutColumn.headerHeight
-                    color: "transparent"
-
-                    Column {
-                        anchors.left: parent.left
-                        anchors.leftMargin: Theme.spacingM
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        StyledText {
-                            text: "Phillips Hue Lights"
-                            font.pixelSize: Theme.fontSizeLarge
-                            color: Theme.surfaceText
-                        }
-
-                        StyledText {
-                            text: HueService.isError ? "" : `Bridge IP: ${HueService.bridgeIP}, Rooms: ${HueService.rooms.length}`
-                            font.pixelSize: Theme.fontSizeSmall
-                            color: Theme.surfaceVariantText
-                        }
-                    }
-
-                    Row {
-                        id: viewToggleRow
-                        anchors.right: parent.right
-                        anchors.rightMargin: Theme.spacingM
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: Theme.spacingS
-                        visible: !HueService.isError
-
-                        HueViewToggleButton {
-                            iconName: "light_group"
-                            isActive: root.activeView === "rooms"
-                            onClicked: {
-                                root.activeView = "rooms";
-                            }
-                        }
-
-                        HueViewToggleButton {
-                            iconName: "floor_lamp"
-                            isActive: root.activeView === "lights"
-                            onClicked: {
-                                root.activeView = "lights";
-                            }
-                        }
+                Header {
+                    headerHeight: popoutColumn.headerHeight
+                    activeView: root.activeView
+                    onViewChangeRequested: newView => {
+                        root.activeView = newView;
                     }
                 }
 
@@ -119,17 +79,8 @@ PluginComponent {
 
             Component {
                 id: errorComponent
-
-                Item {
-                    StyledText {
-                        anchors.centerIn: parent
-                        text: HueService.errorMessage
-                        color: Theme.error
-                        font.pixelSize: Theme.fontSizeLarge
-                        horizontalAlignment: Text.AlignHCenter
-                        wrapMode: Text.WordWrap
-                        width: parent.width - Theme.spacingXL * 2
-                    }
+                Error {
+                    errorMessage: HueService.errorMessage
                 }
             }
 
@@ -137,7 +88,7 @@ PluginComponent {
                 id: viewComponent
 
                 Item {
-                    HueRoomsView {
+                    RoomsView {
                         anchors.fill: parent
                         visible: root.activeView === "rooms"
                         popoutHeight: root.popoutHeight
@@ -145,7 +96,7 @@ PluginComponent {
                         rooms: HueService.rooms
                     }
 
-                    HueLightsView {
+                    LightsView {
                         anchors.fill: parent
                         visible: root.activeView === "lights"
                     }
@@ -153,7 +104,4 @@ PluginComponent {
             }
         }
     }
-
-    popoutWidth: 400
-    popoutHeight: 500
 }
