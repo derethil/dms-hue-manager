@@ -14,14 +14,43 @@ PluginComponent {
     property string activeView: "rooms"
 
     property int currentIndex: 0
+    property var pendingChanges: ({})
 
     Component.onCompleted: {
         // Note: the import of HueService here is necessary because Singletons are lazy-loaded in QML.
         console.log("HueService loaded with bridge:", HueService.pluginId);
     }
 
+    Connections {
+        target: HueService
+        function onRoomsChanged() {
+            root.pendingChanges = ({})
+        }
+    }
+
+    function setPendingChange(entity, propertyName, value) {
+        if (!pendingChanges[entity.id]) {
+            pendingChanges[entity.id] = {}
+        }
+        pendingChanges[entity.id][propertyName] = value
+        pendingChangesChanged()  
+    }
+
+    function getEntityProperty(entity, propertyName) {
+        if (pendingChanges[entity.id] && pendingChanges[entity.id][propertyName] !== undefined) {
+            return pendingChanges[entity.id][propertyName]
+        }
+        return entity[propertyName]
+    }
+
     function toggleEntityPower(entity) {
+        setPendingChange(entity, "on", !entity.on)
         HueService.setEntityPower(entity, !entity.on)
+    }
+
+    function setEntityBrightness(entity, brightness) {
+        setPendingChange(entity, "dimming", brightness)
+        HueService.setEntityBrightness(entity, brightness)
     }
 
     component HueIcon: DankIcon {
@@ -83,7 +112,7 @@ PluginComponent {
                 anchors.centerIn: parent
                 name: "light_group"
                 size: Theme.iconSize
-                color: entity.on ? Theme.primary : Theme.surfaceText
+                color: root.getEntityProperty(entity, "on") ? Theme.primary : Theme.surfaceText
             }
 
             MouseArea {
