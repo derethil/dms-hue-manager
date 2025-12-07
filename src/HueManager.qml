@@ -4,6 +4,7 @@ import qs.Services
 import qs.Widgets
 import qs.Modules.Plugins
 import qs.Modules.ControlCenter.Widgets
+import "./Widgets"
 
 PluginComponent {
     id: root
@@ -52,128 +53,21 @@ PluginComponent {
         HueService.setEntityBrightness(entity, brightness);
     }
 
-    component HueIcon: DankIcon {
-        name: "lightbulb_2"
-        size: Theme.barIconSize(root.barThickness, -4)
-        color: {
-            if (HueService.isError)
-                return Theme.error;
-            if (root.isOpen)
-                return Theme.primary;
-            return Theme.widgetIconColor || Theme.surfaceText;
-        }
-    }
-
-    component ViewToggleButton: Rectangle {
-        property string iconName: ""
-        property bool isActive: false
-        signal clicked
-
-        width: 36
-        height: 36
-        radius: Theme.cornerRadius
-        color: isActive ? Theme.primaryHover : mouseArea.containsMouse ? Theme.surfaceHover : "transparent"
-
-        DankIcon {
-            anchors.centerIn: parent
-            name: iconName
-            size: Theme.iconSizeSmall
-            color: isActive ? Theme.primary : Theme.surfaceText
-        }
-
-        MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: parent.clicked()
-        }
-    }
-
-    component LightingItemHeader: StyledRect {
-        id: lightingItemHeader
-        property var entity: null
-        property real leftIndent: Theme.spacingM
-        width: parent.width
-        height: 48
-        radius: Theme.cornerRadius
-        border.width: 0
-
-        Rectangle {
-            property var isActive: false
-
-            anchors.left: parent.left
-            width: Theme.iconSizeSmall * 2
-            height: Theme.iconSizeSmall * 2
-            color: mouseArea.containsMouse ? Theme.surfaceHover : "transparent"
-
-            DankIcon {
-                anchors.centerIn: parent
-                name: "light_group"
-                size: Theme.iconSize
-                color: root.getEntityProperty(entity, "on") ? Theme.primary : Theme.surfaceText
-            }
-
-            MouseArea {
-                id: mouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    toggleEntityPower(entity);
-                }
-            }
-        }
-
-        Column {
-            anchors.right: parent.right
-
-            StyledText {
-                id: headerText
-                text: entity.name
-                font.pixelSize: Theme.fontSizeMedium
-                color: Theme.surfaceText
-            }
-        }
-    }
-
-    component RoomsView: Item {
-        DankListView {
-            id: roomsList
-            width: parent.width
-            height: root.popoutHeight - 46 - Theme.spacingM * 2
-            model: HueService.rooms
-            currentIndex: root.currentIndex
-
-            delegate: Column {
-                id: roomDelegate
-                width: parent.width
-                spacing: 0
-
-                LightingItemHeader {
-                    entity: modelData
-                }
-            }
-        }
-    }
-
-    component LightsView: Item {
-        StyledText {
-            anchors.centerIn: parent
-            text: "Lights View"
-            color: Theme.surfaceText
-        }
-    }
-
     horizontalBarPill: Component {
         HueIcon {
             anchors.horizontalCenter: parent.horizontalCenter
+            isOpen: root.isOpen
+            barThickness: root.barThickness
+            isError: HueService.isError
         }
     }
 
     verticalBarPill: Component {
         HueIcon {
             anchors.horizontalCenter: parent.horizontalCenter
+            isOpen: root.isOpen
+            barThickness: root.barThickness
+            isError: HueService.isError
         }
     }
 
@@ -232,7 +126,7 @@ PluginComponent {
                         spacing: Theme.spacingS
                         visible: !HueService.isError
 
-                        ViewToggleButton {
+                        HueViewToggleButton {
                             iconName: "light_group"
                             isActive: root.activeView === "rooms"
                             onClicked: {
@@ -240,7 +134,7 @@ PluginComponent {
                             }
                         }
 
-                        ViewToggleButton {
+                        HueViewToggleButton {
                             iconName: "floor_lamp"
                             isActive: root.activeView === "lights"
                             onClicked: {
@@ -277,12 +171,17 @@ PluginComponent {
                 id: viewComponent
 
                 Item {
-                    RoomsView {
+                    HueRoomsView {
                         anchors.fill: parent
                         visible: root.activeView === "rooms"
+                        popoutHeight: root.popoutHeight
+                        currentIndex: root.currentIndex
+                        rooms: HueService.rooms
+                        getEntityProperty: root.getEntityProperty
+                        toggleEntityPower: root.toggleEntityPower
                     }
 
-                    LightsView {
+                    HueLightsView {
                         anchors.fill: parent
                         visible: root.activeView === "lights"
                     }
