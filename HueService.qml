@@ -24,6 +24,14 @@ Item {
     property string bridgeIP: ""
     property var rooms: []
 
+    Timer {
+        id: refreshTimer
+        interval: 5000  
+        repeat: true
+        running: false
+        onTriggered: refresh()
+    }
+
     Component.onCompleted: {
         initialize()
     }
@@ -35,6 +43,7 @@ Item {
             checkIsOpenHueSetup((configured) => {
                 if (!configured) return
                 refresh()
+                refreshTimer.start()
             })
         })
     }
