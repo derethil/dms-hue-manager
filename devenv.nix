@@ -10,6 +10,15 @@
 
   processes.reload.exec = "watchexec -e qml -- 'dms ipc call plugins disable hueManager && dms ipc call plugins enable hueManager && dms ipc call plugins reload hueManager'";
 
+  git-hooks.hooks = {
+    qmlformat = {
+      enable = true;
+      name = "qmlformat";
+      entry = "${pkgs.qt6.qtdeclarative}/bin/qmlformat -i";
+      files = "\\.qml$";
+    };
+  };
+
   enterShell =
     /*
     bash

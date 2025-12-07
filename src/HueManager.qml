@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 import qs.Common
 import qs.Services
 import qs.Widgets
@@ -24,42 +23,44 @@ PluginComponent {
     Connections {
         target: HueService
         function onRoomsChanged() {
-            root.pendingChanges = ({})
+            root.pendingChanges = ({});
         }
     }
 
     function setPendingChange(entity, propertyName, value) {
         if (!pendingChanges[entity.id]) {
-            pendingChanges[entity.id] = {}
+            pendingChanges[entity.id] = {};
         }
-        pendingChanges[entity.id][propertyName] = value
-        pendingChangesChanged()  
+        pendingChanges[entity.id][propertyName] = value;
+        pendingChangesChanged();
     }
 
     function getEntityProperty(entity, propertyName) {
         if (pendingChanges[entity.id] && pendingChanges[entity.id][propertyName] !== undefined) {
-            return pendingChanges[entity.id][propertyName]
+            return pendingChanges[entity.id][propertyName];
         }
-        return entity[propertyName]
+        return entity[propertyName];
     }
 
     function toggleEntityPower(entity) {
-        setPendingChange(entity, "on", !entity.on)
-        HueService.setEntityPower(entity, !entity.on)
+        setPendingChange(entity, "on", !entity.on);
+        HueService.setEntityPower(entity, !entity.on);
     }
 
     function setEntityBrightness(entity, brightness) {
-        setPendingChange(entity, "dimming", brightness)
-        HueService.setEntityBrightness(entity, brightness)
+        setPendingChange(entity, "dimming", brightness);
+        HueService.setEntityBrightness(entity, brightness);
     }
 
     component HueIcon: DankIcon {
         name: "lightbulb_2"
         size: Theme.barIconSize(root.barThickness, -4)
         color: {
-            if (HueService.isError) return Theme.error
-            if (root.isOpen) return Theme.primary
-            return Theme.widgetIconColor || Theme.surfaceText
+            if (HueService.isError)
+                return Theme.error;
+            if (root.isOpen)
+                return Theme.primary;
+            return Theme.widgetIconColor || Theme.surfaceText;
         }
     }
 
@@ -90,10 +91,9 @@ PluginComponent {
     }
 
     component LightingItemHeader: StyledRect {
+        id: lightingItemHeader
         property var entity: null
         property real leftIndent: Theme.spacingM
-
-        id: lightingItemHeader
         width: parent.width
         height: 48
         radius: Theme.cornerRadius
@@ -106,7 +106,6 @@ PluginComponent {
             width: Theme.iconSizeSmall * 2
             height: Theme.iconSizeSmall * 2
             color: mouseArea.containsMouse ? Theme.surfaceHover : "transparent"
-
 
             DankIcon {
                 anchors.centerIn: parent
@@ -121,7 +120,7 @@ PluginComponent {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    toggleEntityPower(entity)
+                    toggleEntityPower(entity);
                 }
             }
         }
@@ -186,13 +185,13 @@ PluginComponent {
 
             Component.onCompleted: {
                 Qt.callLater(() => {
-                    root.isOpen = true
+                    root.isOpen = true;
                     forceActiveFocus();
-                })
+                });
             }
 
             Component.onDestruction: {
-                root.isOpen = false
+                root.isOpen = false;
             }
 
             Column {
@@ -237,7 +236,7 @@ PluginComponent {
                             iconName: "light_group"
                             isActive: root.activeView === "rooms"
                             onClicked: {
-                                root.activeView = "rooms"
+                                root.activeView = "rooms";
                             }
                         }
 
@@ -245,7 +244,7 @@ PluginComponent {
                             iconName: "floor_lamp"
                             isActive: root.activeView === "lights"
                             onClicked: {
-                                root.activeView = "lights"
+                                root.activeView = "lights";
                             }
                         }
                     }
