@@ -22,7 +22,7 @@ StyledRect {
     component ToggleButton: Rectangle {
         width: Theme.iconSizeSmall * 2
         height: Theme.iconSizeSmall * 2
-        color: mouseArea.containsMouse ? Theme.surfaceHover : "transparent"
+        color: mouseArea.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
         radius: Theme.cornerRadius
 
         DankIcon {

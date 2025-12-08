@@ -108,6 +108,9 @@ Item {
         entity.name = data.name;
         entity.on = data.on;
         entity.dimming = data.dimming;
+        if (data.on) {
+            entity.lastOnDimming = data.dimming;
+        }
     }
 
     function getRooms() {
