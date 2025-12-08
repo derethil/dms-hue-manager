@@ -13,16 +13,33 @@ StyledRect {
     radius: Theme.cornerRadius
     border.width: 0
 
+    function dimColorByBrightness(color, brightness) {
+        const minBrightness = 0.4;
+        const factor = minBrightness + (brightness / 100) * (1 - minBrightness);
+        return Qt.rgba(color.r * factor, color.g * factor, color.b * factor, color.a);
+    }
+
     component ToggleButton: Rectangle {
         width: Theme.iconSizeSmall * 2
         height: Theme.iconSizeSmall * 2
         color: mouseArea.containsMouse ? Theme.surfaceHover : "transparent"
+        radius: Theme.cornerRadius
 
         DankIcon {
             anchors.centerIn: parent
             name: "light_group"
             size: Theme.iconSize
-            color: root.entity.on ? Theme.primary : Theme.surfaceText
+            color: {
+                const color = root.entity.on ? Theme.primary : Theme.surfaceText;
+                return root.dimColorByBrightness(color, root.entity.dimming);
+            }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: Theme.shorterDuration
+                    easing.type: Theme.standardEasing
+                }
+            }
         }
 
         MouseArea {
@@ -32,6 +49,17 @@ StyledRect {
             cursorShape: Qt.PointingHandCursor
             onClicked: {
                 root.entity.togglePower();
+            }
+        }
+    }
+
+    component HeaderText: StyledText {
+        required property color textColor
+        color: root.dimColorByBrightness(textColor, root.entity.dimming)
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.shorterDuration
+                easing.type: Theme.standardEasing
             }
         }
     }
@@ -46,16 +74,16 @@ StyledRect {
         Column {
             anchors.verticalCenter: parent.verticalCenter
 
-            StyledText {
+            HeaderText {
                 text: root.entity.name
+                textColor: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
-                color: Theme.surfaceText
             }
 
-            StyledText {
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.surfaceTextMedium
+            HeaderText {
                 text: `Power: ${root.entity.on ? "On" : "Off"}, Brightness: ${root.entity.dimming}%`
+                textColor: Theme.surfaceTextMedium
+                font.pixelSize: Theme.fontSizeSmall
             }
         }
     }

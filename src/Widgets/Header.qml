@@ -20,7 +20,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
 
         StyledText {
-            text: "Phillips Hue Lights"
+            text: "Philips Hue Lights"
             font.pixelSize: Theme.fontSizeLarge
             color: Theme.surfaceText
         }
