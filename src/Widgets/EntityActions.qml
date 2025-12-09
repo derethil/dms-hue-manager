@@ -95,5 +95,31 @@ Item {
                 }
             }
         }
+
+        EntityAction {
+            Layout.preferredHeight: 48
+            iconColor: {
+                const color = root.entity.on ? Theme.primary : Theme.surfaceText;
+                return EntityUtils.dimColorByBrightness(color, root.entity.dimming);
+            }
+            icon: "brightness_6"
+            label: "Brightness"
+
+            DankSlider {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.spacingL
+                width: 150
+
+                value: root.entity.dimming
+                minimum: 0
+                maximum: 100
+                enabled: root.entity.on
+
+                onSliderValueChanged: newValue => {
+                    root.entity.setBrightness(newValue);
+                }
+            }
+        }
     }
 }
