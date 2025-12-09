@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.Common
 import qs.Widgets
+import "../utils/EntityUtils.js" as EntityUtils
 
 StyledRect {
     id: root
@@ -16,12 +17,6 @@ StyledRect {
     radius: Theme.cornerRadius
     border.width: 0
 
-    function dimColorByBrightness(color, brightness) {
-        const minBrightness = 0.4;
-        const factor = minBrightness + (brightness / 100) * (1 - minBrightness);
-        return Qt.rgba(color.r * factor, color.g * factor, color.b * factor, color.a);
-    }
-
     component ToggleButton: Rectangle {
         width: Theme.iconSizeSmall * 2
         height: Theme.iconSizeSmall * 2
@@ -34,7 +29,7 @@ StyledRect {
             size: Theme.iconSize
             color: {
                 const color = root.entity.on ? Theme.primary : Theme.surfaceText;
-                return root.dimColorByBrightness(color, root.entity.dimming);
+                return EntityUtils.dimColorByBrightness(color, root.entity.dimming);
             }
 
             Behavior on color {
@@ -58,7 +53,7 @@ StyledRect {
 
     component HeaderText: StyledText {
         required property color textColor
-        color: root.dimColorByBrightness(textColor, root.entity.dimming)
+        color: EntityUtils.dimColorByBrightness(textColor, root.entity.dimming)
         Behavior on color {
             ColorAnimation {
                 duration: Theme.shorterDuration
@@ -77,6 +72,9 @@ StyledRect {
     }
 
     Row {
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.leftMargin: Theme.spacingS
         spacing: Theme.spacingS
 
         ToggleButton {
@@ -103,6 +101,7 @@ StyledRect {
     Rectangle {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
+        anchors.rightMargin: Theme.spacingS
         width: Theme.iconSizeSmall * 2
         height: Theme.iconSizeSmall * 2
         color: chevronMouseArea.containsMouse ? Theme.surfaceHover : "transparent"

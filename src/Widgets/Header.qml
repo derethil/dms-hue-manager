@@ -30,7 +30,7 @@ Rectangle {
                 if (HueService.isError) {
                     return `Error: ${HueService.errorMessage}`;
                 } else {
-                    return `Bridge IP: ${HueService.bridgeIP}, Rooms: ${HueService.rooms.length}`;
+                    return `Bridge IP: ${HueService.bridgeIP}`;
                 }
             }
             font.pixelSize: Theme.fontSizeSmall

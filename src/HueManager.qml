@@ -13,7 +13,7 @@ PluginComponent {
 
     property int currentIndex: 0
 
-    popoutWidth: 400
+    popoutWidth: 350
     popoutHeight: 500
 
     Component.onCompleted: {
