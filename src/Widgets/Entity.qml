@@ -27,12 +27,8 @@ StyledRect {
             }
         }
 
-        Rectangle {
-            height: 1
-            width: parent.width * 0.9
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            color: Theme.outlineMedium
+        Divider {
+            variant: Divider.Variant.Horizontal
             visible: root.isExpanded
             opacity: root.isExpanded ? 1 : 0
 

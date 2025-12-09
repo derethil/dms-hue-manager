@@ -92,7 +92,7 @@ PluginComponent {
                 Item {
                     RoomsView {
                         anchors.fill: parent
-                        anchors.margins: Theme.spacingM
+                        anchors.margins: Theme.spacingS
                         width: parent.width
                         visible: root.activeView === "rooms"
                         popoutHeight: root.popoutHeight
@@ -101,7 +101,7 @@ PluginComponent {
                     }
 
                     LightsView {
-                        anchors.margins: Theme.spacingM
+                        anchors.margins: Theme.spacingS
                         anchors.fill: parent
                         visible: root.activeView === "lights"
                     }

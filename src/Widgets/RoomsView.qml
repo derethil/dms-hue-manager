@@ -15,7 +15,7 @@ Item {
         width: parent.width
         height: root.popoutHeight - 46 - Theme.spacingM * 2
         currentIndex: parent.currentIndex
-        spacing: Theme.spacingS
+        spacing: Theme.spacingM
 
         model: ScriptModel {
             values: root.rooms
