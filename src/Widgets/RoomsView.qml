@@ -22,16 +22,6 @@ Item {
             objectProp: "entityId"
         }
 
-        delegate: Column {
-            id: roomDelegate
-            required property var modelData
-
-            width: root.width
-            spacing: 0
-
-            EntityHeader {
-                entity: roomDelegate.modelData
-            }
-        }
+        delegate: Entity {}
     }
 }

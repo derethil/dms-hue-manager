@@ -7,6 +7,9 @@ StyledRect {
     id: root
 
     required property var entity
+    required property bool expanded
+
+    signal toggleExpanded
 
     width: parent.width
     height: 48
@@ -22,7 +25,7 @@ StyledRect {
     component ToggleButton: Rectangle {
         width: Theme.iconSizeSmall * 2
         height: Theme.iconSizeSmall * 2
-        color: mouseArea.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
+        color: toggleEntityMouseArea.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
         radius: Theme.cornerRadius
 
         DankIcon {
@@ -43,7 +46,7 @@ StyledRect {
         }
 
         MouseArea {
-            id: mouseArea
+            id: toggleEntityMouseArea
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
@@ -61,6 +64,15 @@ StyledRect {
                 duration: Theme.shorterDuration
                 easing.type: Theme.standardEasing
             }
+        }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+            root.toggleExpanded();
         }
     }
 
@@ -102,6 +114,14 @@ StyledRect {
             name: "keyboard_arrow_down"
             size: Theme.iconSize
             color: Theme.surfaceText
+            rotation: root.expanded ? 180 : 0
+
+            Behavior on rotation {
+                NumberAnimation {
+                    duration: Theme.shorterDuration
+                    easing.type: Theme.standardEasing
+                }
+            }
         }
 
         MouseArea {
@@ -110,7 +130,7 @@ StyledRect {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                // TODO: Open entity details view
+                root.toggleExpanded();
             }
         }
     }
