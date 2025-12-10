@@ -7,7 +7,8 @@ import qs.Services
 Item {
     id: service
 
-    property Component entityComponent: HueEntity {}
+    property Component roomComponent: HueRoom {}
+    property Component lightComponent: HueLight {}
 
     readonly property string pluginId: "hueManager"
 
@@ -121,7 +122,9 @@ Item {
     }
 
     function createEntityObject(data) {
-        return entityComponent.createObject(service, {
+        const component = data.entityType === "room" ? roomComponent : lightComponent;
+
+        const properties = {
             entityId: data.id,
             name: data.name,
             entityType: data.entityType,
@@ -129,7 +132,13 @@ Item {
             on: data.on,
             dimming: data.dimming,
             _service: service
-        });
+        };
+
+        if (data.entityType === "room") {
+            properties.lastOnDimming = data.on ? data.dimming : 100;
+        }
+
+        return component.createObject(service, properties);
     }
 
     function updateEntity(entity, data) {

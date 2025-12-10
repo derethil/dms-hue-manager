@@ -16,7 +16,7 @@ Rectangle {
 
     Column {
         anchors.left: parent.left
-        anchors.leftMargin: Theme.spacingM
+        anchors.leftMargin: Theme.spacingS
         anchors.verticalCenter: parent.verticalCenter
 
         StyledText {
@@ -41,7 +41,7 @@ Rectangle {
     Row {
         id: viewToggleRow
         anchors.right: parent.right
-        anchors.rightMargin: Theme.spacingM
+        anchors.rightMargin: Theme.spacingS
         anchors.verticalCenter: parent.verticalCenter
         spacing: Theme.spacingS
         visible: !HueService.isError
