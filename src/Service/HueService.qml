@@ -134,6 +134,13 @@ Item {
             _service: service
         };
 
+        if (data.entityType === "light") {
+            properties.room = {
+                id: data.roomId,
+                name: data.roomName
+            };
+        }
+
         if (data.entityType === "room") {
             properties.lastOnDimming = data.on ? data.dimming : 100;
         }
@@ -146,8 +153,12 @@ Item {
         entity.archetype = data.archetype;
         entity.on = data.on;
         entity.dimming = data.dimming;
-        if (data.on) {
-            entity.lastOnDimming = data.dimming;
+
+        if (entity.entityType === "light") {
+            entity.room = {
+                id: data.roomId,
+                name: data.roomName
+            };
         }
     }
 
@@ -215,7 +226,9 @@ Item {
                 on: .HueData.on.on,
                 id: .Id,
                 entityType: "light",
-                archetype: (.HueData.metadata.archetype // "")
+                archetype: (.HueData.metadata.archetype // ""),
+                roomId: .Parent.Parent.Id,
+                roomName: .Parent.Parent.Name
             }]
         `;
 
