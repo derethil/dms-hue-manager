@@ -11,6 +11,7 @@ PluginComponent {
 
     property bool isOpen: false
     property string activeView: "rooms"
+    property string lightFilterRoomId: ""
 
     popoutWidth: 350
     popoutHeight: 500
@@ -67,6 +68,9 @@ PluginComponent {
                     activeView: root.activeView
                     onViewChangeRequested: newView => {
                         root.activeView = newView;
+                        if (newView === "lights") {
+                            root.lightFilterRoomId = "";
+                        }
                     }
                 }
 
@@ -106,6 +110,10 @@ PluginComponent {
                             anchors.margins: Theme.spacingS
                             popoutHeight: root.popoutHeight
                             rooms: Array.from(HueService.rooms.values())
+                            onRoomSelected: roomId => {
+                                root.lightFilterRoomId = roomId;
+                                root.activeView = "lights";
+                            }
                         }
                     }
 
@@ -115,6 +123,10 @@ PluginComponent {
                             anchors.margins: Theme.spacingS
                             popoutHeight: root.popoutHeight
                             lights: Array.from(HueService.lights.values())
+                            filterToRoomId: root.lightFilterRoomId
+                            onClearFilterRequested: {
+                                root.lightFilterRoomId = "";
+                            }
                         }
                     }
                 }

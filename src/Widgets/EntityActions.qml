@@ -11,6 +11,7 @@ Item {
     required property bool expanded
 
     signal powerToggled(bool isOn)
+    signal viewLightsClicked(string roomId)
 
     width: parent.width
     visible: root.opacity > 0
@@ -119,6 +120,21 @@ Item {
 
                 onSliderValueChanged: newValue => {
                     root.entity.setBrightness(newValue);
+                }
+            }
+        }
+
+        EntityAction {
+            visible: root.entity.entityType === "room"
+            iconColor: Theme.surfaceText
+            icon: "arrow_forward"
+            label: "1 Lights"
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    root.viewLightsClicked(root.entity.entityId);
                 }
             }
         }

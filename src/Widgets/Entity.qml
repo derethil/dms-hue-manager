@@ -8,6 +8,8 @@ StyledRect {
 
     property bool isExpanded: false
 
+    signal viewLightsClicked(string roomId)
+
     width: parent.width
     height: content.height
     radius: Theme.cornerRadius
@@ -42,6 +44,9 @@ StyledRect {
         EntityActions {
             entity: root.modelData
             expanded: root.isExpanded
+            onViewLightsClicked: roomId => {
+                root.viewLightsClicked(roomId);
+            }
         }
     }
 }

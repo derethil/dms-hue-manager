@@ -9,6 +9,8 @@ Item {
     property int popoutHeight: 500
     property var rooms: []
 
+    signal roomSelected(string roomId)
+
     DankListView {
         id: roomsList
         width: parent.width
@@ -24,6 +26,10 @@ Item {
             console.info(`${HueService.pluginId}: ListView completed with ${root.rooms.length} rooms.`);
         }
 
-        delegate: Entity {}
+        delegate: Entity {
+            onViewLightsClicked: roomId => {
+                root.roomSelected(roomId);
+            }
+        }
     }
 }
