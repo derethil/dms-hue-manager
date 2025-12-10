@@ -43,7 +43,9 @@ Item {
     }
 
     onRefreshIntervalChanged: {
-        refreshTimer.restart();
+        if (refreshTimer.running) {
+            refreshTimer.restart();
+        }
     }
 
     Component.onCompleted: {
