@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Controls
 import qs.Common
 import qs.Modules.Plugins
 import "./Widgets"
@@ -87,23 +88,34 @@ PluginComponent {
             Component {
                 id: viewComponent
 
-                Item {
-                    RoomsView {
-                        anchors.fill: parent
-                        anchors.margins: Theme.spacingS
-                        width: parent.width
-                        visible: root.activeView === "rooms"
-                        popoutHeight: root.popoutHeight
-                        rooms: Array.from(HueService.rooms.values())
+                SwipeView {
+                    id: swipeView
+                    currentIndex: root.activeView === "rooms" ? 0 : 1
+
+                    Component.onCompleted: {
+                        contentItem.highlightMoveDuration = Theme.shortDuration;
                     }
 
-                    LightsView {
-                        anchors.fill: parent
-                        anchors.margins: Theme.spacingS
-                        width: parent.width
-                        visible: root.activeView === "lights"
-                        popoutHeight: root.popoutHeight
-                        lights: Array.from(HueService.lights.values())
+                    onCurrentIndexChanged: {
+                        root.activeView = currentIndex === 0 ? "rooms" : "lights";
+                    }
+
+                    Item {
+                        RoomsView {
+                            anchors.fill: parent
+                            anchors.margins: Theme.spacingS
+                            popoutHeight: root.popoutHeight
+                            rooms: Array.from(HueService.rooms.values())
+                        }
+                    }
+
+                    Item {
+                        LightsView {
+                            anchors.fill: parent
+                            anchors.margins: Theme.spacingS
+                            popoutHeight: root.popoutHeight
+                            lights: Array.from(HueService.lights.values())
+                        }
                     }
                 }
             }
