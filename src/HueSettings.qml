@@ -41,6 +41,14 @@ PluginSettings {
                 defaultValue: HueService.defaults.openHuePath
                 placeholder: HueService.defaults.openHuePath
             }
+
+            StringSetting {
+                settingKey: "refreshInterval"
+                label: "Refresh Interval (ms)"
+                description: "How often to refresh the state of Hue devices."
+                defaultValue: HueService.defaults.refreshInterval.toString()
+                placeholder: HueService.defaults.refreshInterval.toString()
+            }
         }
     }
 }

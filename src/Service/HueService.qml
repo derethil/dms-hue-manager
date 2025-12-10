@@ -12,23 +12,38 @@ Item {
     readonly property string pluginId: "hueManager"
 
     readonly property var defaults: ({
-            openHuePath: "openhue"
+            openHuePath: "openhue",
+            refreshInterval: 5000
         })
 
     property bool isError: false
     property string errorMessage: ""
 
     property string openHuePath: defaults.openHuePath
+    property int refreshInterval: defaults.refreshInterval
 
     property string bridgeIP: ""
     property var rooms: []
 
+    Connections {
+        target: PluginService
+        function onPluginDataChanged(pluginId) {
+            if (pluginId === service.pluginId) {
+                service.loadSettings();
+            }
+        }
+    }
+
     Timer {
         id: refreshTimer
-        interval: 5000
+        interval: service.refreshInterval
         repeat: true
         running: false
         onTriggered: service.refresh()
+    }
+
+    onRefreshIntervalChanged: {
+        refreshTimer.restart();
     }
 
     Component.onCompleted: {
@@ -52,6 +67,7 @@ Item {
     function loadSettings() {
         const load = key => PluginService.loadPluginData(pluginId, key) || defaults[key];
         openHuePath = load("openHuePath");
+        refreshInterval = parseInt(load("refreshInterval"));
     }
 
     // initial checks
