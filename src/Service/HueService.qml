@@ -53,11 +53,15 @@ Item {
     function initialize() {
         loadSettings();
         checkOpenHueAvailable(available => {
-            if (!available)
+            if (!available) {
+                console.error(`${pluginId}: OpenHue is not available.`);
                 return;
+            }
             checkIsOpenHueSetup(configured => {
-                if (!configured)
+                if (!configured) {
+                    console.error(`${pluginId}: OpenHue is not configued.`);
                     return;
+                }
                 refresh();
                 refreshTimer.start();
             });
@@ -132,35 +136,40 @@ Item {
     function getRooms() {
         const command = `${openHuePath} get room -j | jq '[.[] | {name: .Name, dimming: .GroupedLight.HueData.dimming.brightness, on: .GroupedLight.HueData.on.on, id: .Id, entityType: "room"}]'`;
         Proc.runCommand(`${pluginId}.openhueRooms`, ["sh", "-c", command], (output, exitCode) => {
-            if (exitCode === 0) {
-                try {
-                    const rawRooms = JSON.parse(output.trim());
-                    const updatedRooms = [];
-
-                    rawRooms.forEach(roomData => {
-                        const existing = service.rooms.find(r => r.entityId === roomData.id);
-                        if (existing) {
-                            updateEntity(existing, roomData);
-                            updatedRooms.push(existing);
-                        } else {
-                            updatedRooms.push(createEntityObject(roomData));
-                        }
-                    });
-
-                    service.rooms.forEach(room => {
-                        if (!updatedRooms.includes(room)) {
-                            room.destroy();
-                        }
-                    });
-
-                    service.rooms = updatedRooms;
-                } catch (e) {
-                    console.error("HueManager: Failed to parse rooms JSON:", e);
-                    service.rooms = [];
-                }
-            } else {
-                console.error("HueManager: Failed to get rooms:", output);
+            // Check for command errors
+            if (exitCode !== 0) {
+                console.error(`${pluginId}: Failed to get rooms:`, output);
+                return;
             }
+
+            // Check for JSON parse errors
+            try {
+                const rawRooms = JSON.parse(output.trim());
+            } catch (e) {
+                console.error(`${pluginId}: Failed to parse rooms JSON:`, e);
+                return;
+            }
+
+            // Refresh room entities
+            const updatedRooms = [];
+
+            rawRooms.forEach(roomData => {
+                const existing = service.rooms.find(r => r.entityId === roomData.id);
+                if (existing) {
+                    updateEntity(existing, roomData);
+                    updatedRooms.push(existing);
+                } else {
+                    updatedRooms.push(createEntityObject(roomData));
+                }
+            });
+
+            service.rooms.forEach(room => {
+                if (!updatedRooms.includes(room)) {
+                    room.destroy();
+                }
+            });
+
+            service.rooms = updatedRooms;
         }, 100);
     }
 
@@ -175,7 +184,7 @@ Item {
         Proc.runCommand(`${pluginId}.setEntityPower`, [openHuePath, "set", entity.entityType, entity.entityId, state], (output, exitCode) => {
             if (output !== "") {
                 ToastService.showError("Hue Manager Error", `Failed to toggle ${entity.entityType} ${entity.entityId}`);
-                console.error(`HueManager: Failed to toggle ${entity.entityType} ${entity.entityId}:`, output);
+                console.error(`${pluginId}: Failed to toggle ${entity.entityType} ${entity.entityId}:`, output);
                 Qt.callLater(refresh);
             }
         }, 100);
@@ -187,7 +196,7 @@ Item {
         Proc.runCommand(`${pluginId}.setEntityBrightness`, [openHuePath, "set", entity.entityType, entity.entityId, "--brightness", brightnessValue.toString()], (output, exitCode) => {
             if (output !== "") {
                 ToastService.showError("Hue Manager Error", `Failed to set ${entity.entityType} brightness ${entity.entityId}`);
-                console.error(`HueManager: Failed to set ${entity.entityType} brightness ${entity.entityId}:`, output);
+                console.error(`${pluginId}: Failed to set ${entity.entityType} brightness ${entity.entityId}:`, output);
                 Qt.callLater(refresh);
             }
         }, 100);
