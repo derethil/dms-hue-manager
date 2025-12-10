@@ -1,0 +1,131 @@
+# Icons Maps
+
+## Lights
+
+### Table
+
+- Traditional = table_shade
+- Desk lamp = flexible_lamp
+- Table wash = table_wash
+
+### Floor
+
+- Christmas tree = christmas_tree
+- Floor shade = floor_shade
+- Floor lantern = floor_lantern
+- Bollard = bollard
+- Ground spot = ground_spot
+- Recessed floor = recessed_floor
+- Light bar = wall_washer
+
+### Ceiling
+
+- Pendant round = pendant_round
+- Pendant horizontal = pendant_long
+- Ceiling round = ceiling_round
+- Ceiling square = ceiling_square
+- Single spot = single_spot
+- Double spot - double_spot
+- Recessed celing = recessed_ceiling
+- Pendant spot = pendant_spot
+- Ceiling horizontal = ceiling_horizontal
+- Ceiling tube = ceiling_tube
+
+### Wall
+
+- Wall lantern = wall_lantern
+- Wall shade = wall_shade
+- Wall spot = wall_spot
+- Dual wall light (1) = up_and_down
+- Dual wall light (2) = up_and_down_down
+- Dual wall light (3) = up_and_down_up
+
+### Other
+
+- Signature bulb = sultan_bulb
+- Rounded bulb = classic_bulb
+- Spot = spot_bulb
+- Flood light = flood_bulb
+- Candelabra bulb = candle_bulb
+- Filament bulb = vintage_bulb
+- Mini-bulb = luster_bulb
+- Lightguide (1) = ellipse_bulb
+- Lightguide (2) = triangle_bulb
+- Lightguide (3) = small_globe_bulb
+- Lightguide (4) = large_globe_bulb
+- Lightguide (5) = edison_bulb
+- Hue lightstip = hue_lightstrip
+- String lights = string_light
+- Hue go = hue_go
+- Play light bar = hue_play
+- Hue bloom = hue_bloom
+- Hue iris = hue_iris
+- Smart plug = plug
+- Hue centris = hue_centris
+- Hue tube = hue_tube
+- Hue signe = hue_signe
+- Floodlight camera = hue_floodlight_camera
+- Twilight (1) = twilight
+- Twilight (2) = twilight_back
+- Twilight (3) = twilight_front
+- Hue play wall washer = hue_play_wall_washer
+- Hue omni glow = hue_omniglow
+- String globe = string_globe
+- String permanent = string_permanent
+
+## Rooms
+
+### Traditional
+
+- Living room = living_room
+- Kitchen = kitchen
+- Dining = dining
+- Bedroom = bedroom
+- Kids bedroom = kids_bedroom
+- Bathroom = bathroom
+- Nursery = nursery
+- Office = office
+- Guest room = guest_room
+
+### Practical
+
+- Toilet = toilet
+- Staircase = staircase
+- Hallway = hallway
+- Laundry room = laundry_room
+- Storage = storage
+- Closet = closet
+- Garage = garage
+- Other = other
+
+## Recreation
+
+- Gym = gym
+- Lounge = lounge
+- TV = tv
+- Computer = computer
+- Recreation = recreation
+- Gaming room = man_cave
+- Music room = music
+- Library = reading
+- Studio = studio
+
+## Outside
+
+- Backyard = garden
+- Patio = terrace
+- Balcony = balcony
+- Driveway = driveway
+- Carport = carport
+- Front door = front_door
+- Porch = porch
+- Barbecue = barbecue
+- Pool = pool
+
+## Levels
+
+- Downstairs = downstairs
+- Upstairs = upstairs
+- Top floor = top_floor
+- Attic = attic
+- Home = home

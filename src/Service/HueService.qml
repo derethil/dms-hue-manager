@@ -13,7 +13,8 @@ Item {
 
     readonly property var defaults: ({
             openHuePath: "openhue",
-            refreshInterval: 5000
+            refreshInterval: 5000,
+            useDeviceIcons: true
         })
 
     property bool isError: false
@@ -21,6 +22,7 @@ Item {
 
     property string openHuePath: defaults.openHuePath
     property int refreshInterval: defaults.refreshInterval
+    property bool useDeviceIcons: defaults.useDeviceIcons
 
     property string bridgeIP: ""
     property var rooms: new Map()
@@ -75,6 +77,7 @@ Item {
         const load = key => PluginService.loadPluginData(pluginId, key) || defaults[key];
         openHuePath = load("openHuePath");
         refreshInterval = parseInt(load("refreshInterval"));
+        useDeviceIcons = load("useDeviceIcons");
     }
 
     // initial checks
@@ -122,6 +125,7 @@ Item {
             entityId: data.id,
             name: data.name,
             entityType: data.entityType,
+            archetype: data.archetype,
             on: data.on,
             dimming: data.dimming,
             _service: service
@@ -130,6 +134,7 @@ Item {
 
     function updateEntity(entity, data) {
         entity.name = data.name;
+        entity.archetype = data.archetype;
         entity.on = data.on;
         entity.dimming = data.dimming;
         if (data.on) {
@@ -185,7 +190,8 @@ Item {
                 dimming: .GroupedLight.HueData.dimming.brightness,
                 on: .GroupedLight.HueData.on.on,
                 id: .Id,
-                entityType: "room"
+                entityType: "room",
+                archetype: (.HueData.metadata.archetype // "")
             }]
         `;
 
@@ -199,7 +205,8 @@ Item {
                 dimming: .HueData.dimming.brightness,
                 on: .HueData.on.on,
                 id: .Id,
-                entityType: "light"
+                entityType: "light",
+                archetype: (.HueData.metadata.archetype // "")
             }]
         `;
 

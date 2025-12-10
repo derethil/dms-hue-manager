@@ -1,4 +1,5 @@
 import QtQuick
+import "../utils/EntityUtils.js" as EntityUtils
 
 QtObject {
     id: entity
@@ -7,6 +8,7 @@ QtObject {
     required property string name
     required property string entityId
     required property string entityType
+    property string archetype: ""
 
     required property var _service
 
@@ -16,8 +18,10 @@ QtObject {
     property var dimming: null
     property var lastOnDimming: dimming
 
-    // readable computed properties
+    // Computed properties
     readonly property bool isDimmable: dimming !== null
+
+    readonly property string icon: EntityUtils.getEntityIcon(entity, _service.useDeviceIcons)
 
     Component.onCompleted: {
         // API doesn't provide last brightness when off - default to 100 until first refresh where entity state is known

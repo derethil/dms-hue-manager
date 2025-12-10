@@ -25,7 +25,7 @@ StyledRect {
 
         DankIcon {
             anchors.centerIn: parent
-            name: "light_group"
+            name: root.entity.icon
             size: Theme.iconSize
             color: {
                 const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;

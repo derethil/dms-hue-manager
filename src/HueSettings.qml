@@ -49,6 +49,13 @@ PluginSettings {
                 defaultValue: HueService.defaults.refreshInterval.toString()
                 placeholder: HueService.defaults.refreshInterval.toString()
             }
+
+            ToggleSetting {
+                settingKey: "useDeviceIcons"
+                label: "Use Device Icons"
+                description: "Use specific icons for different types of Hue devices."
+                defaultValue: HueService.defaults.useDeviceIcons
+            }
         }
     }
 }
