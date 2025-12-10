@@ -78,8 +78,8 @@ Item {
 
         EntityAction {
             iconColor: {
-                const color = root.entity.on ? Theme.primary : Theme.surfaceText;
-                return EntityUtils.dimColorByBrightness(color, root.entity.dimming);
+                const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
+                return EntityUtils.dimColorByBrightness(baseColor, root.entity);
             }
             icon: "power_settings_new"
             label: "Power"
@@ -97,10 +97,11 @@ Item {
         }
 
         EntityAction {
+            visible: root.entity.isDimmable
             Layout.preferredHeight: 48
             iconColor: {
-                const color = root.entity.on ? Theme.primary : Theme.surfaceText;
-                return EntityUtils.dimColorByBrightness(color, root.entity.dimming);
+                const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
+                return EntityUtils.dimColorByBrightness(baseColor, root.entity);
             }
             icon: "brightness_6"
             label: "Brightness"
@@ -111,7 +112,7 @@ Item {
                 anchors.rightMargin: Theme.spacingL
                 width: 150
 
-                value: root.entity.dimming
+                value: root.entity.dimming ?? 0
                 minimum: 0
                 maximum: 100
                 enabled: root.entity.on

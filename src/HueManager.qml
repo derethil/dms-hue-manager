@@ -11,8 +11,6 @@ PluginComponent {
     property bool isOpen: false
     property string activeView: "rooms"
 
-    property int currentIndex: 0
-
     popoutWidth: 350
     popoutHeight: 500
 
@@ -96,14 +94,16 @@ PluginComponent {
                         width: parent.width
                         visible: root.activeView === "rooms"
                         popoutHeight: root.popoutHeight
-                        currentIndex: root.currentIndex
                         rooms: Array.from(HueService.rooms.values())
                     }
 
                     LightsView {
-                        anchors.margins: Theme.spacingS
                         anchors.fill: parent
+                        anchors.margins: Theme.spacingS
+                        width: parent.width
                         visible: root.activeView === "lights"
+                        popoutHeight: root.popoutHeight
+                        lights: Array.from(HueService.lights.values())
                     }
                 }
             }

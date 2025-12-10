@@ -28,8 +28,8 @@ StyledRect {
             name: "light_group"
             size: Theme.iconSize
             color: {
-                const color = root.entity.on ? Theme.primary : Theme.surfaceText;
-                return EntityUtils.dimColorByBrightness(color, root.entity.dimming);
+                const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
+                return EntityUtils.dimColorByBrightness(baseColor, root.entity);
             }
 
             Behavior on color {
@@ -53,7 +53,7 @@ StyledRect {
 
     component HeaderText: StyledText {
         required property color textColor
-        color: EntityUtils.dimColorByBrightness(textColor, root.entity.dimming)
+        color: EntityUtils.dimColorByBrightness(textColor, root.entity)
         Behavior on color {
             ColorAnimation {
                 duration: Theme.shorterDuration
@@ -91,7 +91,13 @@ StyledRect {
             }
 
             HeaderText {
-                text: `Power: ${root.entity.on ? "On" : "Off"}, Brightness: ${root.entity.dimming}%`
+                text: {
+                    const powerStatus = `Power: ${root.entity.on ? "On" : "Off"}`;
+                    if (root.entity.isDimmable) {
+                        return `${powerStatus}, Brightness: ${root.entity.dimming}%`;
+                    }
+                    return powerStatus;
+                }
                 textColor: Theme.surfaceTextMedium
                 font.pixelSize: Theme.fontSizeSmall
             }

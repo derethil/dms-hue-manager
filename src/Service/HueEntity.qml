@@ -15,6 +15,8 @@ QtObject {
 
     property var dimming: null
     property var lastOnDimming: dimming
+
+    // readable computed properties
     readonly property bool isDimmable: dimming !== null
 
     Component.onCompleted: {

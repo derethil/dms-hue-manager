@@ -155,7 +155,7 @@ Item {
             }
 
             const currentMap = service[property];
-            const updatedEntities = new Map();
+            const updatedEntities = new Map(); // force quickshell reactivity by reassignment instead of mutating
 
             rawEntities.forEach(entityData => {
                 const existing = currentMap.get(entityData.id);
