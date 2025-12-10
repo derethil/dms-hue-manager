@@ -97,7 +97,7 @@ PluginComponent {
                         visible: root.activeView === "rooms"
                         popoutHeight: root.popoutHeight
                         currentIndex: root.currentIndex
-                        rooms: HueService.rooms
+                        rooms: Array.from(HueService.rooms.values())
                     }
 
                     LightsView {

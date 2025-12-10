@@ -22,6 +22,10 @@ Item {
             objectProp: "entityId"
         }
 
+        Component.onCompleted: {
+            console.info(`${HueService.pluginId}: View completed with ${root.rooms.length} rooms.`);
+        }
+
         delegate: Entity {}
     }
 }

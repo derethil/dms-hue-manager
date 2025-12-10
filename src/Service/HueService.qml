@@ -23,7 +23,8 @@ Item {
     property int refreshInterval: defaults.refreshInterval
 
     property string bridgeIP: ""
-    property var rooms: []
+    property var rooms: new Map()
+    property var lights: new Map()
 
     Connections {
         target: PluginService
@@ -107,6 +108,7 @@ Item {
     function refresh() {
         getHueBridgeIP();
         getRooms();
+        getLights();
     }
 
     function getHueBridgeIP() {
@@ -135,44 +137,73 @@ Item {
         }
     }
 
-    function getRooms() {
-        const command = `${openHuePath} get room -j | jq '[.[] | {name: .Name, dimming: .GroupedLight.HueData.dimming.brightness, on: .GroupedLight.HueData.on.on, id: .Id, entityType: "room"}]'`;
-        Proc.runCommand(`${pluginId}.openhueRooms`, ["sh", "-c", command], (output, exitCode) => {
-            // Check for command errors
+    function getEntities(entityType, command) {
+        const property = `${entityType}s`;
+
+        Proc.runCommand(`${pluginId}.get_${property}`, ["sh", "-c", command], (output, exitCode) => {
             if (exitCode !== 0) {
-                console.error(`${pluginId}: Failed to get rooms:`, output);
+                console.error(`${pluginId}: Failed to get ${entityType}s:`, output);
                 return;
             }
 
-            // Check for JSON parse errors
+            let rawEntities;
             try {
-                const rawRooms = JSON.parse(output.trim());
+                rawEntities = JSON.parse(output.trim());
             } catch (e) {
-                console.error(`${pluginId}: Failed to parse rooms JSON:`, e);
+                console.error(`${pluginId}: Failed to parse ${entityType}s JSON:`, e);
                 return;
             }
 
-            // Refresh room entities
-            const updatedRooms = [];
+            const currentMap = service[property];
+            const updatedEntities = new Map();
 
-            rawRooms.forEach(roomData => {
-                const existing = service.rooms.find(r => r.entityId === roomData.id);
+            rawEntities.forEach(entityData => {
+                const existing = currentMap.get(entityData.id);
                 if (existing) {
-                    updateEntity(existing, roomData);
-                    updatedRooms.push(existing);
+                    updateEntity(existing, entityData);
+                    updatedEntities.set(entityData.id, existing);
                 } else {
-                    updatedRooms.push(createEntityObject(roomData));
+                    const newEntity = createEntityObject(entityData);
+                    updatedEntities.set(entityData.id, newEntity);
                 }
             });
 
-            service.rooms.forEach(room => {
-                if (!updatedRooms.includes(room)) {
-                    room.destroy();
+            currentMap.forEach((entity, id) => {
+                if (!updatedEntities.has(id)) {
+                    entity.destroy();
                 }
             });
 
-            service.rooms = updatedRooms;
+            service[property] = updatedEntities;
         }, 100);
+    }
+
+    function getRooms() {
+        const jqMap = `
+            [.[] | {
+                name: .Name,
+                dimming: .GroupedLight.HueData.dimming.brightness,
+                on: .GroupedLight.HueData.on.on,
+                id: .Id,
+                entityType: "room"
+            }]
+        `;
+
+        getEntities("room", `${openHuePath} get room -j | jq '${jqMap}'`);
+    }
+
+    function getLights() {
+        const jqMap = `
+            [.[] | {
+                name: .Name,
+                dimming: .HueData.dimming.brightness,
+                on: .HueData.on.on,
+                id: .Id,
+                entityType: "light"
+            }]
+        `;
+
+        getEntities("light", `${openHuePath} get light -j | jq '${jqMap}'`);
     }
 
     function setError(message) {

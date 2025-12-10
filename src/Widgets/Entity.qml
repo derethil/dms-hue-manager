@@ -23,7 +23,6 @@ StyledRect {
             expanded: root.isExpanded
             onToggleExpanded: {
                 root.isExpanded = !root.isExpanded;
-                console.error(root.isExpanded);
             }
         }
 
