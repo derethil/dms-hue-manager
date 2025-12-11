@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
+import qs.Services
 import qs.Widgets
 import "../utils/Entities.js" as EntityUtils
 
@@ -114,7 +115,7 @@ Item {
                 width: 150
 
                 value: root.entity.dimming ?? 0
-                minimum: 0
+                minimum: root.entity.minDimming ?? 0
                 maximum: 100
                 enabled: root.entity.on
 
@@ -150,6 +151,68 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     root.viewLightsClicked(root.entity.entityId);
+                }
+            }
+        }
+
+        EntityAction {
+            visible: root.entity.entityType === "light" && root.entity.isColorCapable
+            iconColor: {
+                const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
+                return EntityUtils.dimColorByBrightness(baseColor, root.entity);
+            }
+            icon: "palette"
+            label: "Color"
+
+            Item {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.spacingL
+                width: colorRow.width
+                height: colorRow.height
+
+                Row {
+                    id: colorRow
+                    spacing: Theme.spacingS
+                    height: Theme.iconSize
+
+                    Item {
+                        width: hexText.width
+                        height: parent.height
+
+                        StyledText {
+                            id: hexText
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: root.entity.color?.toString() || "#000000"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                        }
+                    }
+
+                    Rectangle {
+                        width: Theme.iconSize
+                        height: Theme.iconSize
+                        radius: Theme.iconSize / 2
+                        color: root.entity.color || "#000000"
+                        border.color: Theme.outlineStrong
+                        border.width: 2
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (PopoutService && PopoutService.colorPickerModal) {
+                            const entity = root.entity;
+                            PopoutService.colorPickerModal.selectedColor = entity.color || "#FFFFFF";
+                            PopoutService.colorPickerModal.pickerTitle = "Color";
+                            PopoutService.colorPickerModal.onColorSelectedCallback = function (selectedColor) {
+                                entity.setColor(selectedColor);
+                            };
+                            PopoutService.colorPickerModal.show();
+                        }
+                    }
                 }
             }
         }

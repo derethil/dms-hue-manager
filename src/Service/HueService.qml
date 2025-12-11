@@ -130,18 +130,25 @@ Item {
             entityType: data.entityType,
             archetype: data.archetype,
             on: data.on,
-            dimming: data.dimming,
             _service: service
         };
 
         if (data.entityType === "light") {
+            properties.dimming = data.dimming.dimming;
+            properties.minDimming = data.dimming.minDimming * 100;
+
             properties.room = {
                 id: data.roomId,
                 name: data.roomName
             };
+
+            if (data.color.gamut !== null && data.color.xy !== null) {
+                properties.colorData = data.color;
+            }
         }
 
         if (data.entityType === "room") {
+            properties.dimming = data.dimming;
             properties.lastOnDimming = data.on ? data.dimming : 100;
             properties.lights = data.lights || [];
         }
@@ -153,17 +160,24 @@ Item {
         entity.name = data.name;
         entity.archetype = data.archetype;
         entity.on = data.on;
-        entity.dimming = data.dimming;
 
         if (entity.entityType === "light") {
+            entity.dimming = data.dimming.dimming;
+            entity.minDimming = data.dimming.minDimming * 100;
+
             entity.room = {
                 id: data.roomId,
                 name: data.roomName
             };
+
+            if (data.color.gamut !== null && data.color.xy !== null) {
+                entity.colorData = data.color;
+            }
         }
 
         if (entity.entityType === "room") {
-            entity.lights = data.lights || [];
+            entity.dimming = data.dimming;
+            entity.lights = data.lights ?? [];
         }
     }
 
@@ -235,7 +249,14 @@ Item {
                 entityType: "light",
 
                 on: .HueData.on.on,
-                dimming: .HueData.dimming.brightness,
+                dimming: {
+                    dimming: .HueData.dimming.brightness,
+                    minDimming: .HueData.dimming.min_dim_level
+                },
+                color: {
+                    xy: .HueData.color.xy,
+                    gamut: .HueData.color.gamut_type
+                },
 
                 archetype: (.HueData.metadata.archetype // ""),
 
@@ -271,6 +292,17 @@ Item {
             if (output !== "") {
                 ToastService.showError("Hue Manager Error", `Failed to set ${entity.entityType} brightness ${entity.entityId}`);
                 console.error(`${pluginId}: Failed to set ${entity.entityType} brightness ${entity.entityId}:`, output);
+                Qt.callLater(refresh);
+            }
+        }, 100);
+    }
+
+    function applyEntityColor(entity, color) {
+        refreshTimer.restart();
+        Proc.runCommand(`${pluginId}.setEntityColor`, [openHuePath, "set", entity.entityType, entity.entityId, "--rgb", color], (output, exitCode) => {
+            if (output !== "") {
+                ToastService.showError("Hue Manager Error", `Failed to set ${entity.entityType} color ${entity.entityId}`);
+                console.error(`${pluginId}: Failed to set ${entity.entityType} color ${entity.entityId}:`, output);
                 Qt.callLater(refresh);
             }
         }, 100);
