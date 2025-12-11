@@ -129,7 +129,7 @@ Item {
             visible: root.entity.entityType === "light" && root.entity.isColorCapable
             iconColor: {
                 if (root.entity.temperature?.valid) {
-                    return Theme.surfaceText;
+                    return EntityUtils.dimColorByBrightness(Theme.surfaceText, root.entity);
                 }
 
                 const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
@@ -202,7 +202,7 @@ Item {
             Layout.preferredHeight: 48
             iconColor: {
                 if (!root.entity.temperature?.valid) {
-                    return Theme.surfaceText;
+                    return EntityUtils.dimColorByBrightness(Theme.surfaceText, root.entity);
                 }
 
                 const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
