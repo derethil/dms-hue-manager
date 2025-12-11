@@ -29,6 +29,8 @@ Item {
     property var rooms: new Map()
     property var lights: new Map()
 
+    property bool preserveWidgetStateOnNextOpen: false
+
     Connections {
         target: PluginService
         function onPluginDataChanged(pluginId) {

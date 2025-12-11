@@ -179,10 +179,16 @@ Item {
                     onClicked: {
                         if (PopoutService && PopoutService.colorPickerModal) {
                             const entity = root.entity;
+
+                            HueService.preserveWidgetStateOnNextOpen = true;
+
                             PopoutService.colorPickerModal.selectedColor = entity.color || "#FFFFFF";
                             PopoutService.colorPickerModal.pickerTitle = "Color";
                             PopoutService.colorPickerModal.onColorSelectedCallback = function (selectedColor) {
                                 entity.setColor(selectedColor);
+                                Qt.callLater(() => {
+                                    BarWidgetService?.triggerWidgetPopout("hueManager");
+                                });
                             };
                             PopoutService.colorPickerModal.show();
                         }

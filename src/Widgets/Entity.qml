@@ -5,8 +5,10 @@ import qs.Widgets
 StyledRect {
     id: root
     required property var modelData
+    property var expandedEntityIds: new Set()
+    property var setEntityExpanded: null
 
-    property bool isExpanded: false
+    property bool isExpanded: expandedEntityIds.has(modelData.entityId)
 
     signal viewLightsClicked(string roomId)
 
@@ -24,7 +26,10 @@ StyledRect {
             entity: root.modelData
             expanded: root.isExpanded
             onToggleExpanded: {
-                root.isExpanded = !root.isExpanded;
+                const newExpandedState = !root.isExpanded;
+                if (root.setEntityExpanded) {
+                    root.setEntityExpanded(root.modelData.entityId, newExpandedState);
+                }
             }
         }
 

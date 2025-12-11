@@ -8,6 +8,8 @@ Item {
     id: root
     property int popoutHeight: 500
     property var rooms: []
+    property var expandedEntityIds: new Set()
+    property var setEntityExpanded: null
 
     signal roomSelected(string roomId)
 
@@ -27,6 +29,9 @@ Item {
         }
 
         delegate: Entity {
+            expandedEntityIds: root.expandedEntityIds
+            setEntityExpanded: root.setEntityExpanded
+
             onViewLightsClicked: roomId => {
                 root.roomSelected(roomId);
             }

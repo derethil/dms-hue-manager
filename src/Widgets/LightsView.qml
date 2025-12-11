@@ -8,6 +8,8 @@ Item {
     property int popoutHeight: 500
     property var lights: []
     property string filterToRoomId: ""
+    property var expandedEntityIds: new Set()
+    property var setEntityExpanded: null
 
     signal backRequested
 
@@ -99,7 +101,10 @@ Item {
 
             Repeater {
                 model: roomView.lights
-                delegate: Entity {}
+                delegate: Entity {
+                    expandedEntityIds: root.expandedEntityIds
+                    setEntityExpanded: root.setEntityExpanded
+                }
             }
         }
     }

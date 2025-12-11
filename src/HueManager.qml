@@ -12,7 +12,18 @@ PluginComponent {
     property bool isOpen: false
     property string activeView: "rooms"
     property string lightFilterRoomId: ""
+    property var expandedEntityIds: new Set()
     property int slideDuration: Theme.shortDuration
+
+    function setEntityExpanded(entityId, isExpanded) {
+        const newSet = new Set(root.expandedEntityIds);
+        if (isExpanded) {
+            newSet.add(entityId);
+        } else {
+            newSet.delete(entityId);
+        }
+        root.expandedEntityIds = newSet;  // Reassign to trigger QML reactivity
+    }
 
     popoutWidth: 350
     popoutHeight: 500
@@ -47,16 +58,21 @@ PluginComponent {
             focus: true
 
             Component.onCompleted: {
-                Qt.callLater(() => {
-                    root.isOpen = true;
-                    forceActiveFocus();
-                });
+                root.isOpen = true;
+                forceActiveFocus();
             }
 
             Component.onDestruction: {
                 root.isOpen = false;
-                root.lightFilterRoomId = "";
-                root.activeView = "rooms";
+
+                Qt.callLater(() => {
+                    if (!HueService.preserveWidgetStateOnNextOpen) {
+                        root.lightFilterRoomId = "";
+                        root.activeView = "rooms";
+                        root.expandedEntityIds = new Set();
+                    }
+                    HueService.preserveWidgetStateOnNextOpen = false;
+                });
             }
 
             Column {
@@ -121,6 +137,8 @@ PluginComponent {
                             anchors.margins: Theme.spacingS
                             popoutHeight: root.popoutHeight
                             rooms: Array.from(HueService.rooms.values())
+                            expandedEntityIds: root.expandedEntityIds
+                            setEntityExpanded: root.setEntityExpanded
                             onRoomSelected: roomId => {
                                 root.lightFilterRoomId = roomId;
                                 root.activeView = "lights";
@@ -135,6 +153,8 @@ PluginComponent {
                             popoutHeight: root.popoutHeight
                             lights: Array.from(HueService.lights.values())
                             filterToRoomId: root.lightFilterRoomId
+                            expandedEntityIds: root.expandedEntityIds
+                            setEntityExpanded: root.setEntityExpanded
                             onBackRequested: {
                                 root.activeView = "rooms";
                                 clearFilterTimer.start();
