@@ -1,5 +1,5 @@
 import QtQuick
-import "../utils/EntityUtils.js" as EntityUtils
+import "../utils/Entities.js" as EntityUtils
 
 QtObject {
     id: entity

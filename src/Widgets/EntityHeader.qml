@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.Common
 import qs.Widgets
-import "../utils/EntityUtils.js" as EntityUtils
+import "../utils/Entities.js" as EntityUtils
 
 StyledRect {
     id: root

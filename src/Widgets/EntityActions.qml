@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Widgets
-import "../utils/EntityUtils.js" as EntityUtils
+import "../utils/Entities.js" as EntityUtils
 
 Item {
     id: root

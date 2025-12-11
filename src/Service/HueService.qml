@@ -211,12 +211,15 @@ Item {
     function getRooms() {
         const jqMap = `
             [.[] | {
-                name: .Name,
-                dimming: .GroupedLight.HueData.dimming.brightness,
-                on: .GroupedLight.HueData.on.on,
                 id: .Id,
+                name: .Name,
                 entityType: "room",
+
+                on: .GroupedLight.HueData.on.on,
+                dimming: .GroupedLight.HueData.dimming.brightness,
+
                 archetype: (.HueData.metadata.archetype // ""),
+
                 lights: [.Devices[]? | select(.Light != null) | {id: .Light.Id, name: .Light.Name}]
             }]
         `;
@@ -227,12 +230,15 @@ Item {
     function getLights() {
         const jqMap = `
             [.[] | {
-                name: .Name,
-                dimming: .HueData.dimming.brightness,
-                on: .HueData.on.on,
                 id: .Id,
+                name: .Name,
                 entityType: "light",
+
+                on: .HueData.on.on,
+                dimming: .HueData.dimming.brightness,
+
                 archetype: (.HueData.metadata.archetype // ""),
+
                 roomId: .Parent.Parent.Id,
                 roomName: .Parent.Parent.Name
             }]
