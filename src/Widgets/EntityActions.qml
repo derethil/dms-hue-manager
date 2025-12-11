@@ -217,15 +217,26 @@ Item {
                 anchors.rightMargin: Theme.spacingL
                 width: 150
 
-                unit: " Mired"
+                unit: "K"
 
-                value: root.entity.temperature?.value ?? root.entity.temperature?.schema.minimum ?? 153
-                minimum: root.entity.temperature?.schema.minimum ?? 153
-                maximum: root.entity.temperature?.schema.maximum ?? 500
+                value: {
+                    const milrek = root.entity.temperature?.value ?? root.entity.temperature?.schema.minimum ?? 153;
+                    return EntityUtils.milrekToKelvin(milrek);
+                }
+                // Milrek is inverted compared to Kelvin
+                minimum: {
+                    const milrek = root.entity.temperature?.schema.maximum ?? 500;
+                    return EntityUtils.milrekToKelvin(milrek);
+                }
+                maximum: {
+                    const milrek = root.entity.temperature?.schema.minimum ?? 153;
+                    return EntityUtils.milrekToKelvin(milrek);
+                }
                 enabled: root.entity.on
 
                 onSliderValueChanged: newValue => {
-                    root.entity.setTemperature(newValue);
+                    const milrekValue = EntityUtils.kelvinToMilrek(newValue);
+                    root.entity.setTemperature(milrekValue);
                 }
             }
         }

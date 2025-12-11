@@ -4,13 +4,13 @@ import "../utils/Color.js" as ColorUtils
 HueEntity {
     id: light
 
-    property var colorData: null
-    property var temperature: null
     property var room
 
     property var minDimming
-
+    property var colorData: null
     property bool isColorCapable: colorData !== null
+    property var temperature: null
+    property bool isTemperatureCapable: temperature !== null
 
     property var color: {
         if (!light.isColorCapable) {
@@ -26,7 +26,7 @@ HueEntity {
             return;
         }
 
-        if (light.temperature) {
+        if (light.isTemperatureCapable) {
             light.temperature = {
                 value: light.temperature.value,
                 schema: light.temperature.schema,
@@ -39,7 +39,7 @@ HueEntity {
     }
 
     function setTemperature(newTemperature: real) {
-        if (!light.temperature) {
+        if (!light.isTemperatureCapable) {
             console.warn("Cannot set temperature on non-temperature-capable light:", light.name);
             return;
         }

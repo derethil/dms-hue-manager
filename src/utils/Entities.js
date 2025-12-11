@@ -5,6 +5,14 @@ function dimColorByBrightness(color, entity) {
     return Qt.rgba(color.r * factor, color.g * factor, color.b * factor, color.a);
 }
 
+function milrekToKelvin(milek) {
+    return Math.round(1_000_000 / milek);
+}
+
+function kelvinToMilrek(kelvin) {
+    return Math.round(1_000_000 / kelvin);
+}
+
 function getEntityIcon(entity, useDeviceIcons) {
     // roughly map hue's archetypes to mdi icons
 
