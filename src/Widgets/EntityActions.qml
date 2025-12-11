@@ -186,9 +186,7 @@ Item {
                             PopoutService.colorPickerModal.pickerTitle = "Color";
                             PopoutService.colorPickerModal.onColorSelectedCallback = function (selectedColor) {
                                 entity.setColor(selectedColor);
-                                Qt.callLater(() => {
-                                    BarWidgetService?.triggerWidgetPopout("hueManager");
-                                });
+                                BarWidgetService?.triggerWidgetPopout("hueManager");
                             };
                             PopoutService.colorPickerModal.show();
                         }
