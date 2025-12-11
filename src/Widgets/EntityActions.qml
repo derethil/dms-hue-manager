@@ -126,9 +126,24 @@ Item {
 
         EntityAction {
             visible: root.entity.entityType === "room"
-            iconColor: Theme.surfaceText
-            icon: "arrow_forward"
-            label: "1 Lights"
+            iconColor: {
+                const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
+                return EntityUtils.dimColorByBrightness(baseColor, root.entity);
+            }
+            icon: "view_agenda"
+            label: {
+                const count = root.entity.lights?.length || 0;
+                return count === 1 ? "1 Light" : `${count} Lights`;
+            }
+
+            DankIcon {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.spacingL
+                name: "chevron_right"
+                size: Theme.iconSizeSmall
+                color: Theme.surfaceText
+            }
 
             MouseArea {
                 anchors.fill: parent

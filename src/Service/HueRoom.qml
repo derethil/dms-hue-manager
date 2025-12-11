@@ -4,6 +4,7 @@ HueEntity {
     id: room
 
     property var lastOnDimming: dimming
+    property var lights: []
 
     Component.onCompleted: {
         // API doesn't provide brightness for rooms when off - default to 100 until first refresh where entity state is known

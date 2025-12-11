@@ -143,6 +143,7 @@ Item {
 
         if (data.entityType === "room") {
             properties.lastOnDimming = data.on ? data.dimming : 100;
+            properties.lights = data.lights || [];
         }
 
         return component.createObject(service, properties);
@@ -159,6 +160,10 @@ Item {
                 id: data.roomId,
                 name: data.roomName
             };
+        }
+
+        if (entity.entityType === "room") {
+            entity.lights = data.lights || [];
         }
     }
 
@@ -211,7 +216,8 @@ Item {
                 on: .GroupedLight.HueData.on.on,
                 id: .Id,
                 entityType: "room",
-                archetype: (.HueData.metadata.archetype // "")
+                archetype: (.HueData.metadata.archetype // ""),
+                lights: [.Devices[]? | select(.Light != null) | {id: .Light.Id, name: .Light.Name}]
             }]
         `;
 

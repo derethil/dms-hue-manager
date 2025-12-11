@@ -9,7 +9,7 @@ Item {
     property var lights: []
     property string filterToRoomId: ""
 
-    signal clearFilterRequested
+    signal backRequested
 
     readonly property var lightsByRoom: {
         return root.lights.reduce((acc, light) => {
@@ -76,7 +76,7 @@ Item {
 
                 DankIcon {
                     anchors.centerIn: parent
-                    name: "close"
+                    name: "arrow_back"
                     size: Theme.iconSizeSmall
                     color: Theme.surfaceText
                 }
@@ -87,7 +87,7 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        root.clearFilterRequested();
+                        root.backRequested();
                     }
                 }
             }

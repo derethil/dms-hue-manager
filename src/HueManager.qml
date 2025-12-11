@@ -12,6 +12,7 @@ PluginComponent {
     property bool isOpen: false
     property string activeView: "rooms"
     property string lightFilterRoomId: ""
+    property int slideDuration: Theme.shortDuration
 
     popoutWidth: 350
     popoutHeight: 500
@@ -54,6 +55,8 @@ PluginComponent {
 
             Component.onDestruction: {
                 root.isOpen = false;
+                root.lightFilterRoomId = "";
+                root.activeView = "rooms";
             }
 
             Column {
@@ -97,11 +100,19 @@ PluginComponent {
                     currentIndex: root.activeView === "rooms" ? 0 : 1
 
                     Component.onCompleted: {
-                        contentItem.highlightMoveDuration = Theme.shortDuration;
+                        contentItem.highlightMoveDuration = root.slideDuration;
                     }
 
                     onCurrentIndexChanged: {
                         root.activeView = currentIndex === 0 ? "rooms" : "lights";
+                    }
+
+                    Timer {
+                        id: clearFilterTimer
+                        interval: root.slideDuration
+                        onTriggered: {
+                            root.lightFilterRoomId = "";
+                        }
                     }
 
                     Item {
@@ -124,8 +135,9 @@ PluginComponent {
                             popoutHeight: root.popoutHeight
                             lights: Array.from(HueService.lights.values())
                             filterToRoomId: root.lightFilterRoomId
-                            onClearFilterRequested: {
-                                root.lightFilterRoomId = "";
+                            onBackRequested: {
+                                root.activeView = "rooms";
+                                clearFilterTimer.start();
                             }
                         }
                     }
