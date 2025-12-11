@@ -121,64 +121,54 @@ Item {
         }, 100);
     }
 
-    function createEntityObject(data) {
-        const component = data.entityType === "room" ? roomComponent : lightComponent;
+    function applyEntityData(target, data, isCreating = false) {
+        // Common properties
+        target.name = data.name;
+        target.archetype = data.archetype;
+        target.on = data.on;
 
-        const properties = {
-            entityId: data.id,
-            name: data.name,
-            entityType: data.entityType,
-            archetype: data.archetype,
-            on: data.on,
-            _service: service
-        };
-
+        // Light-specific properties
         if (data.entityType === "light") {
-            properties.dimming = data.dimming.dimming;
-            properties.minDimming = data.dimming.minDimming * 100;
+            target.dimming = data.dimming.dimming;
+            target.minDimming = data.dimming.minDimming * 100;
 
-            properties.room = {
+            target.room = {
                 id: data.roomId,
                 name: data.roomName
             };
 
             if (data.color.gamut !== null && data.color.xy !== null) {
-                properties.colorData = data.color;
+                target.colorData = data.color;
             }
         }
 
+        // Room-specific properties
         if (data.entityType === "room") {
-            properties.dimming = data.dimming;
-            properties.lastOnDimming = data.on ? data.dimming : 100;
-            properties.lights = data.lights || [];
+            target.dimming = data.dimming;
+            target.lights = data.lights || [];
+
+            if (isCreating) {
+                target.lastOnDimming = data.on ? data.dimming : 100;
+            }
         }
+    }
+
+    function createEntity(data) {
+        const component = data.entityType === "room" ? roomComponent : lightComponent;
+
+        const properties = {
+            entityId: data.id,
+            entityType: data.entityType,
+            _service: service
+        };
+
+        applyEntityData(properties, data, true);
 
         return component.createObject(service, properties);
     }
 
     function updateEntity(entity, data) {
-        entity.name = data.name;
-        entity.archetype = data.archetype;
-        entity.on = data.on;
-
-        if (entity.entityType === "light") {
-            entity.dimming = data.dimming.dimming;
-            entity.minDimming = data.dimming.minDimming * 100;
-
-            entity.room = {
-                id: data.roomId,
-                name: data.roomName
-            };
-
-            if (data.color.gamut !== null && data.color.xy !== null) {
-                entity.colorData = data.color;
-            }
-        }
-
-        if (entity.entityType === "room") {
-            entity.dimming = data.dimming;
-            entity.lights = data.lights ?? [];
-        }
+        applyEntityData(entity, data, false);
     }
 
     function getEntities(entityType, command) {
@@ -207,7 +197,7 @@ Item {
                     updateEntity(existing, entityData);
                     updatedEntities.set(entityData.id, existing);
                 } else {
-                    const newEntity = createEntityObject(entityData);
+                    const newEntity = createEntity(entityData);
                     updatedEntities.set(entityData.id, newEntity);
                 }
             });
