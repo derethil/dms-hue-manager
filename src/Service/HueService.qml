@@ -131,14 +131,14 @@ Item {
         if (data.entityType === "light") {
             target.dimming = data.dimming.dimming;
             target.minDimming = data.dimming.minDimming * 100;
-
-            target.room = {
-                id: data.roomId,
-                name: data.roomName
-            };
+            target.room = data.room ?? null;
 
             if (data.color.gamut !== null && data.color.xy !== null) {
                 target.colorData = data.color;
+            }
+
+            if (data.temperature.valid !== null) {
+                target.temperature = data.temperature ?? null;
             }
         }
 
@@ -247,11 +247,21 @@ Item {
                     xy: .HueData.color.xy,
                     gamut: .HueData.color.gamut_type
                 },
+                temperature: {
+                    value: .HueData.color_temperature.mirek,
+                    schema: {
+                        maximum: .HueData.color_temperature.mirek_schema.mirek_maximum,
+                        minimum: .HueData.color_temperature.mirek_schema.mirek_minimum
+                    },
+                    valid: .HueData.color_temperature.mirek_valid
+                },
 
                 archetype: (.HueData.metadata.archetype // ""),
 
-                roomId: .Parent.Parent.Id,
-                roomName: .Parent.Parent.Name
+                room: {
+                    id: .Parent.Parent.Id,
+                    name: .Parent.Parent.Name
+                }
             }]
         `;
 
@@ -293,6 +303,18 @@ Item {
             if (output !== "") {
                 ToastService.showError("Hue Manager Error", `Failed to set ${entity.entityType} color ${entity.entityId}`);
                 console.error(`${pluginId}: Failed to set ${entity.entityType} color ${entity.entityId}:`, output);
+                Qt.callLater(refresh);
+            }
+        }, 100);
+    }
+
+    function applyEntityTemperature(entity, temperature) {
+        refreshTimer.restart();
+        const tempValue = Math.round(temperature);
+        Proc.runCommand(`${pluginId}.setEntityTemperature`, [openHuePath, "set", entity.entityType, entity.entityId, "--temperature", tempValue.toString()], (output, exitCode) => {
+            if (output !== "") {
+                ToastService.showError("Hue Manager Error", `Failed to set ${entity.entityType} temperature ${entity.entityId}`);
+                console.error(`${pluginId}: Failed to set ${entity.entityType} temperature ${entity.entityId}:`, output);
                 Qt.callLater(refresh);
             }
         }, 100);

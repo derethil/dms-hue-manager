@@ -5,6 +5,7 @@ HueEntity {
     id: light
 
     property var colorData: null
+    property var temperature: null
     property var room
 
     property var minDimming
@@ -25,7 +26,30 @@ HueEntity {
             return;
         }
 
+        if (light.temperature) {
+            light.temperature = {
+                value: light.temperature.value,
+                schema: light.temperature.schema,
+                valid: false
+            };
+        }
+
         light.color = newColor;
         _service.applyEntityColor(light, newColor);
+    }
+
+    function setTemperature(newTemperature: real) {
+        if (!light.temperature) {
+            console.warn("Cannot set temperature on non-temperature-capable light:", light.name);
+            return;
+        }
+
+        light.temperature = {
+            value: newTemperature,
+            schema: light.temperature.schema,
+            valid: true
+        };
+
+        _service.applyEntityTemperature(light, newTemperature);
     }
 }

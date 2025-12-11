@@ -126,38 +126,12 @@ Item {
         }
 
         EntityAction {
-            visible: root.entity.entityType === "room"
-            iconColor: {
-                const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
-                return EntityUtils.dimColorByBrightness(baseColor, root.entity);
-            }
-            icon: "view_agenda"
-            label: {
-                const count = root.entity.lights?.length || 0;
-                return count === 1 ? "1 Light" : `${count} Lights`;
-            }
-
-            DankIcon {
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.right: parent.right
-                anchors.rightMargin: Theme.spacingL
-                name: "chevron_right"
-                size: Theme.iconSizeSmall
-                color: Theme.surfaceText
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    root.viewLightsClicked(root.entity.entityId);
-                }
-            }
-        }
-
-        EntityAction {
             visible: root.entity.entityType === "light" && root.entity.isColorCapable
             iconColor: {
+                if (root.entity.temperature?.valid) {
+                    return Theme.surfaceText;
+                }
+
                 const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
                 return EntityUtils.dimColorByBrightness(baseColor, root.entity);
             }
@@ -213,6 +187,69 @@ Item {
                             PopoutService.colorPickerModal.show();
                         }
                     }
+                }
+            }
+        }
+
+        EntityAction {
+            visible: root.entity.entityType === "light" && root.entity.temperature !== null
+            Layout.preferredHeight: 48
+            iconColor: {
+                if (!root.entity.temperature?.valid) {
+                    return Theme.surfaceText;
+                }
+
+                const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
+                return EntityUtils.dimColorByBrightness(baseColor, root.entity);
+            }
+            icon: "thermostat"
+            label: "Temperature"
+
+            DankSlider {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.spacingL
+                width: 150
+
+                unit: " Mired"
+
+                value: root.entity.temperature?.value ?? root.entity.temperature?.schema.minimum ?? 153
+                minimum: root.entity.temperature?.schema.minimum ?? 153
+                maximum: root.entity.temperature?.schema.maximum ?? 500
+                enabled: root.entity.on
+
+                onSliderValueChanged: newValue => {
+                    root.entity.setTemperature(newValue);
+                }
+            }
+        }
+
+        EntityAction {
+            visible: root.entity.entityType === "room"
+            iconColor: {
+                const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
+                return EntityUtils.dimColorByBrightness(baseColor, root.entity);
+            }
+            icon: "view_agenda"
+            label: {
+                const count = root.entity.lights?.length || 0;
+                return count === 1 ? "1 Light" : `${count} Lights`;
+            }
+
+            DankIcon {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.spacingL
+                name: "chevron_right"
+                size: Theme.iconSizeSmall
+                color: Theme.surfaceText
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    root.viewLightsClicked(root.entity.entityId);
                 }
             }
         }
