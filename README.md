@@ -13,14 +13,15 @@ manage your devices.
 
 - **Supports both lights and rooms**: Control an entire room or individual
   lights
-- **Automatic sync**: Polls your Hue Bridge at a configurable interval to keep
-  the widget up to date with any changes made via the app or automations.
+- **Guided setup**: Prompts for OpenHue bridge pairing if not already configured
+- **Auto-refresh**: Polls your Hue Bridge at a configurable interval to keep the
+  widget up to date with any changes made via the app or automations.
 - **Brightness and temperature control**: Manually control a devices's
   brightness level and temperature value
 - **Color control**: Leverages the builtin DMS color picker to set a devices's
   color directly
-- **Automatic device icons**: Maps your Philips Hue icons to the closest
-  equivalent from Material Symbols
+- **Device icons**: Maps your Philips Hue icons to the closest equivalent from
+  Material Symbols
 
 ## Installation
 
@@ -34,14 +35,11 @@ cd ~/.config/DankMaterialShell/plugins
 git clone https://github.com/derethil/dms-hue-manager.git
 ```
 
-1. Install the [OpenHue CLI](https://www.openhue.io/) and set it up with
-   `openhue setup`
+1. Install the [OpenHue CLI](https://www.openhue.io/)
 1. Open DMS Settings (Ctrl+,)
 1. Navigate to the Plugins tab
 1. Click "Scan for plugins"
 1. Enable the Hue Manager plugin
-1. Navigate to the Dank Bar -> Widgets tab
-1. Place the Hue Manager widget somewhere on your bar
 
 ### Nix
 
@@ -53,7 +51,7 @@ home.packages = with pkgs; [
 ];
 ```
 
-Set it up with `openhue setup`, then add this plugin to DMS:
+Then add this plugin to DMS:
 
 ```nix
 dms-hue-manager = {
