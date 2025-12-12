@@ -183,9 +183,25 @@ Item {
                 on: .GroupedLight.HueData.on.on,
                 dimming: .GroupedLight.HueData.dimming.brightness,
 
+                scenes: [
+                    .Scenes[]? |
+                    {
+                        id: .Id,
+                        name: .Name,
+                        active: (.HueData.status.active != "inactive")
+                    }
+                ],
+
                 archetype: (.HueData.metadata.archetype // ""),
 
-                lights: [.Devices[]? | select(.Light != null) | {id: .Light.Id, name: .Light.Name}]
+                lights: [
+                    .Devices[]? |
+                    select(.Light != null) |
+                    {
+                        id: .Light.Id,
+                        name: .Light.Name
+                    }
+                ]
             }]
         `;
 
@@ -313,6 +329,10 @@ Item {
 
             if (isCreating) {
                 target.lastOnDimming = data.on ? data.dimming : 100;
+            }
+
+            if (data.scenes.length > 0) {
+                target.scenes = data.scenes;
             }
         }
     }
