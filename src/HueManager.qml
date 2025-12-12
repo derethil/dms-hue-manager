@@ -97,8 +97,21 @@ PluginComponent {
                     width: parent.width
                     height: root.popoutHeight - popoutColumn.headerHeight
 
-                    sourceComponent: HueService.isError ? errorComponent : viewComponent
+                    sourceComponent: {
+                        if (HueService.isError) {
+                            return errorComponent;
+                        } else if (HueService.isReady) {
+                            return viewComponent;
+                        } else {
+                            return setupComponent;
+                        }
+                    }
                 }
+            }
+
+            Component {
+                id: setupComponent
+                SetupView {}
             }
 
             Component {

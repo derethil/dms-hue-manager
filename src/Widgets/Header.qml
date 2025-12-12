@@ -29,8 +29,10 @@ Rectangle {
             text: {
                 if (HueService.isError) {
                     return `Error: ${HueService.errorMessage}`;
-                } else {
+                } else if (HueService.isReady) {
                     return `Bridge IP: ${HueService.bridgeIP}`;
+                } else {
+                    return "Pairing...";
                 }
             }
             font.pixelSize: Theme.fontSizeSmall
@@ -44,7 +46,7 @@ Rectangle {
         anchors.rightMargin: Theme.spacingS
         anchors.verticalCenter: parent.verticalCenter
         spacing: Theme.spacingS
-        visible: !HueService.isError
+        visible: HueService.isReady
 
         ViewToggleButton {
             iconName: "light_group"

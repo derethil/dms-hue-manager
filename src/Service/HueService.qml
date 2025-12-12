@@ -8,10 +8,11 @@ import qs.Services
 Item {
     id: service
 
-    property Component roomComponent: HueRoom {}
-    property Component lightComponent: HueLight {}
+    // boilerplate
 
     readonly property string pluginId: "hueManager"
+    property Component roomComponent: HueRoom {}
+    property Component lightComponent: HueLight {}
 
     readonly property var defaults: ({
             openHuePath: "openhue",
@@ -19,22 +20,29 @@ Item {
             useDeviceIcons: true
         })
 
-    property bool isError: false
-    property string errorMessage: ""
-
     property string openHuePath: defaults.openHuePath
     property int refreshInterval: defaults.refreshInterval
     property bool useDeviceIcons: defaults.useDeviceIcons
+
+    // service state
+
+    property bool isReady: false
+
+    property bool isError: false
+    property string errorMessage: ""
+
+    property bool isSettingUp: false
+    property bool waitingForButton: false
+
+    // OpenHue data
 
     property string bridgeIP: ""
     property var rooms: new Map()
     property var lights: new Map()
 
-    property bool preserveWidgetStateOnNextOpen: false
+    // UI state
 
-    // Setup process state
-    property bool isSettingUp: false
-    property bool waitingForButton: false
+    property bool preserveWidgetStateOnNextOpen: false
 
     Process {
         id: setupProcess
@@ -44,13 +52,13 @@ Item {
         stdout: SplitParser {
             onRead: data => {
                 const line = data.trim();
-                // Waiting state
+
                 if (line.includes("Please push the button")) {
+                    console.info(`${service.pluginId}: Detected button prompt during openhue setup`);
                     service.waitingForButton = true;
                     return;
                 }
 
-                // Success state
                 if (line.includes("Successfully paired openhue")) {
                     console.info(`${service.pluginId}: OpenHue setup completed successfully.`);
 
@@ -59,7 +67,22 @@ Item {
 
                     refresh();
                     refreshTimer.start();
+                    return;
                 }
+
+                if (line.includes("Unable to discover")) {
+                    setError("OpenHue setup failed: Unable to discover Hue Bridge.");
+                    service.waitingForButton = false;
+                    service.isSettingUp = false;
+                    return;
+                }
+            }
+        }
+
+        stderr: SplitParser {
+            onRead: data => {
+                const line = data.trim();
+                console.error(`${service.pluginId}: Setup error output:`, line);
             }
         }
 
@@ -67,14 +90,6 @@ Item {
             console.info(`${service.pluginId}: OpenHue is not configured, running setup.`);
             service.isSettingUp = true;
         }
-    }
-
-    function startSetup() {
-        setupProcess.running = true;
-    }
-
-    function stopSetup() {
-        setupProcess.running = false;
     }
 
     Connections {
@@ -159,6 +174,10 @@ Item {
         getHueBridgeIP();
         getRooms();
         getLights();
+
+        if (!service.isReady) {
+            service.isReady = true;
+        }
     }
 
     function getHueBridgeIP() {
@@ -315,6 +334,7 @@ Item {
     }
 
     function setError(message) {
+        console.error(`${pluginId}: ${message}`);
         service.isError = true;
         service.errorMessage = message;
     }
