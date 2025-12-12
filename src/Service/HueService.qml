@@ -275,50 +275,35 @@ Item {
         service.errorMessage = message;
     }
 
-    function applyEntityPower(entity, turnOn) {
+    function executeEntityCommand(commandName, entity, args, errorMessage) {
         refreshTimer.restart();
-        const state = turnOn ? "--on" : "--off";
-        Proc.runCommand(`${pluginId}.setEntityPower`, [openHuePath, "set", entity.entityType, entity.entityId, state], (output, exitCode) => {
-            if (output !== "") {
-                ToastService.showError("Hue Manager Error", `Failed to toggle ${entity.entityType} ${entity.entityId}`);
-                console.error(`${pluginId}: Failed to toggle ${entity.entityType} ${entity.entityId}:`, output);
+        const fullArgs = [openHuePath, "set", entity.entityType, entity.entityId, ...args];
+
+        Proc.runCommand(`${pluginId}.${commandName}`, fullArgs, (output, exitCode) => {
+            if (output !== "" || exitCode !== 0) {
+                ToastService.showError("Hue Manager Error", errorMessage);
+                console.error(`${pluginId}: ${errorMessage}:`, output);
                 Qt.callLater(refresh);
             }
         }, 100);
+    }
+
+    function applyEntityPower(entity, turnOn) {
+        const state = turnOn ? "--on" : "--off";
+        executeEntityCommand("setEntityPower", entity, [state], `Failed to toggle ${entity.entityType} ${entity.entityId}`);
     }
 
     function applyEntityBrightness(entity, brightness) {
-        refreshTimer.restart();
         const brightnessValue = Math.round(brightness);
-        Proc.runCommand(`${pluginId}.setEntityBrightness`, [openHuePath, "set", entity.entityType, entity.entityId, "--brightness", brightnessValue.toString()], (output, exitCode) => {
-            if (output !== "") {
-                ToastService.showError("Hue Manager Error", `Failed to set ${entity.entityType} brightness ${entity.entityId}`);
-                console.error(`${pluginId}: Failed to set ${entity.entityType} brightness ${entity.entityId}:`, output);
-                Qt.callLater(refresh);
-            }
-        }, 100);
+        executeEntityCommand("setEntityBrightness", entity, ["--brightness", brightnessValue.toString()], `Failed to set ${entity.entityType} brightness ${entity.entityId}`);
     }
 
     function applyEntityColor(entity, color) {
-        refreshTimer.restart();
-        Proc.runCommand(`${pluginId}.setEntityColor`, [openHuePath, "set", entity.entityType, entity.entityId, "--rgb", color], (output, exitCode) => {
-            if (output !== "") {
-                ToastService.showError("Hue Manager Error", `Failed to set ${entity.entityType} color ${entity.entityId}`);
-                console.error(`${pluginId}: Failed to set ${entity.entityType} color ${entity.entityId}:`, output);
-                Qt.callLater(refresh);
-            }
-        }, 100);
+        executeEntityCommand("setEntityColor", entity, ["--rgb", color], `Failed to set ${entity.entityType} color ${entity.entityId}`);
     }
 
     function applyEntityTemperature(entity, temperature) {
-        refreshTimer.restart();
         const tempValue = Math.round(temperature);
-        Proc.runCommand(`${pluginId}.setEntityTemperature`, [openHuePath, "set", entity.entityType, entity.entityId, "--temperature", tempValue.toString()], (output, exitCode) => {
-            if (output !== "") {
-                ToastService.showError("Hue Manager Error", `Failed to set ${entity.entityType} temperature ${entity.entityId}`);
-                console.error(`${pluginId}: Failed to set ${entity.entityType} temperature ${entity.entityId}:`, output);
-                Qt.callLater(refresh);
-            }
-        }, 100);
+        executeEntityCommand("setEntityTemperature", entity, ["--temperature", tempValue.toString()], `Failed to set ${entity.entityType} temperature ${entity.entityId}`);
     }
 }
