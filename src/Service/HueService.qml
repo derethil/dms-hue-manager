@@ -1,6 +1,7 @@
 pragma Singleton
 
 import QtQuick
+import Quickshell.Io
 import qs.Common
 import qs.Services
 
@@ -30,6 +31,51 @@ Item {
     property var lights: new Map()
 
     property bool preserveWidgetStateOnNextOpen: false
+
+    // Setup process state
+    property bool isSettingUp: false
+    property bool waitingForButton: false
+
+    Process {
+        id: setupProcess
+        running: false
+        command: [service.openHuePath, "setup"]
+
+        stdout: SplitParser {
+            onRead: data => {
+                const line = data.trim();
+                // Waiting state
+                if (line.includes("Please push the button")) {
+                    service.waitingForButton = true;
+                    return;
+                }
+
+                // Success state
+                if (line.includes("Successfully paired openhue")) {
+                    console.info(`${service.pluginId}: OpenHue setup completed successfully.`);
+
+                    service.waitingForButton = false;
+                    service.isSettingUp = false;
+
+                    refresh();
+                    refreshTimer.start();
+                }
+            }
+        }
+
+        onStarted: {
+            console.info(`${service.pluginId}: OpenHue is not configured, running setup.`);
+            service.isSettingUp = true;
+        }
+    }
+
+    function startSetup() {
+        setupProcess.running = true;
+    }
+
+    function stopSetup() {
+        setupProcess.running = false;
+    }
 
     Connections {
         target: PluginService
@@ -67,7 +113,7 @@ Item {
             }
             checkIsOpenHueSetup(configured => {
                 if (!configured) {
-                    console.error(`${pluginId}: OpenHue is not configued.`);
+                    setupProcess.running = true;
                     return;
                 }
                 refresh();
@@ -100,8 +146,6 @@ Item {
     function checkIsOpenHueSetup(onComplete) {
         Proc.runCommand(`${pluginId}.openhueGet`, [openHuePath, "get"], (output, exitCode) => {
             if (output.trim().includes("please run the 'setup' command")) {
-                setError("OpenHue is not set up. Please set up your Hue Bridge with 'openhue setup'.");
-                ToastService.showError("OpenHue Setup Required", "Please run 'openhue setup' to configure your Hue Bridge");
                 onComplete(false);
                 return;
             }
