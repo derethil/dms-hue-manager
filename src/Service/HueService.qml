@@ -186,12 +186,6 @@ Item {
         }, 100);
     }
 
-    function setError(message) {
-        console.error(`${pluginId}: ${message}`);
-        service.isError = true;
-        service.errorMessage = message;
-    }
-
     function refresh() {
         console.log(`${pluginId}: Calling refresh()`);
         getHueBridgeIP();
@@ -282,6 +276,14 @@ Item {
         getEntities("light", `${openHuePath} get light -j | ${jqPath} '${jqMap}'`);
     }
 
+    function getRoom(roomId) {
+        return service.rooms.get(roomId) ?? null;
+    }
+
+    function getLight(lightId) {
+        return service.lights.get(lightId) ?? null;
+    }
+
     function getEntities(entityType, command) {
         const property = `${entityType}s`;
 
@@ -342,7 +344,6 @@ Item {
         message.events.forEach(event => {
             if (event.type === "update" && event.data) {
                 event.data.forEach(entityData => {
-                    console.error(`${pluginId}: Received event for ${entityData.type} ${entityData.id}`);
                     handleEntityUpdate(entityData);
                 });
             }
@@ -475,6 +476,18 @@ Item {
         }, 100);
     }
 
+    function executeSceneCommand(commandName, args, errorMessage) {
+        const fullArgs = [openHuePath, "set", "scene", ...args];
+
+        Proc.runCommand(`${pluginId}.${commandName}`, fullArgs, (output, exitCode) => {
+            if (!output.trim().includes("activated") || exitCode !== 0) {
+                ToastService.showError("Hue Manager Error", errorMessage);
+                console.error(`${pluginId}: ${errorMessage}:`, output.trim());
+                Qt.callLater(refresh);
+            }
+        }, 100);
+    }
+
     function applyEntityPower(entity, turnOn) {
         const state = turnOn ? "--on" : "--off";
         executeEntityCommand("setEntityPower", entity, [state], `Failed to toggle ${entity.entityType} ${entity.entityId}`);
@@ -492,5 +505,15 @@ Item {
     function applyEntityTemperature(entity, temperature) {
         const tempValue = Math.round(temperature);
         executeEntityCommand("setEntityTemperature", entity, ["--temperature", tempValue.toString()], `Failed to set ${entity.entityType} temperature ${entity.entityId}`);
+    }
+
+    function applyActivateScene(scene) {
+        executeSceneCommand("activateScene", [scene.id], `Failed to activate scene ${scene.id}`);
+    }
+
+    function setError(message) {
+        console.error(`${pluginId}: ${message}`);
+        service.isError = true;
+        service.errorMessage = message;
     }
 }

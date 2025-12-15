@@ -35,6 +35,7 @@ HueEntity {
         }
 
         light.color = newColor;
+        light.room.disableScene();
         _service.applyEntityColor(light, newColor);
     }
 
@@ -50,6 +51,7 @@ HueEntity {
             valid: true
         };
 
+        _service.getRoom(room.id)?.disableScene();
         _service.applyEntityTemperature(light, newTemperature);
     }
 }
