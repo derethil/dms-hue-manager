@@ -245,6 +245,14 @@ Item {
         getEntities("light", `${openHuePath} get light -j | jq '${jqMap}'`);
     }
 
+    function getRoom(roomId) {
+        return service.rooms.get(roomId) ?? null;
+    }
+
+    function getLight(lightId) {
+        return service.lights.get(lightId) ?? null;
+    }
+
     function getEntities(entityType, command) {
         const property = `${entityType}s`;
 
@@ -350,6 +358,19 @@ Item {
         }, 100);
     }
 
+    function executeSceneCommand(commandName, args, errorMessage) {
+        refreshTimer.restart();
+        const fullArgs = [openHuePath, "set", "scene", ...args];
+
+        Proc.runCommand(`${pluginId}.${commandName}`, fullArgs, (output, exitCode) => {
+            if (!output.trim().includes("activated") || exitCode !== 0) {
+                ToastService.showError("Hue Manager Error", errorMessage);
+                console.error(`${pluginId}: ${errorMessage}:`, output.trim());
+                Qt.callLater(refresh);
+            }
+        }, 100);
+    }
+
     function applyEntityPower(entity, turnOn) {
         const state = turnOn ? "--on" : "--off";
         executeEntityCommand("setEntityPower", entity, [state], `Failed to toggle ${entity.entityType} ${entity.entityId}`);
@@ -367,6 +388,10 @@ Item {
     function applyEntityTemperature(entity, temperature) {
         const tempValue = Math.round(temperature);
         executeEntityCommand("setEntityTemperature", entity, ["--temperature", tempValue.toString()], `Failed to set ${entity.entityType} temperature ${entity.entityId}`);
+    }
+
+    function applyActivateScene(scene) {
+        executeSceneCommand("activateScene", [scene.id], `Failed to activate scene ${scene.id}`);
     }
 
     function setError(message) {
