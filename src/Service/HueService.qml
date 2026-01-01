@@ -12,12 +12,10 @@ Item {
 
     readonly property var defaults: ({
             openHuePath: "openhue",
-            refreshInterval: 5000,
             useDeviceIcons: true
         })
 
     property string openHuePath: defaults.openHuePath
-    property int refreshInterval: defaults.refreshInterval
     property bool useDeviceIcons: defaults.useDeviceIcons
 
     property bool isReady: false
@@ -57,7 +55,9 @@ Item {
                     service.isSettingUp = false;
 
                     refresh();
-                    refreshTimer.start();
+                    Qt.callLater(() => {
+                        eventStream.running = true;
+                    });
                     return;
                 }
 
@@ -83,12 +83,33 @@ Item {
         }
     }
 
-    Timer {
-        id: refreshTimer
-        interval: service.refreshInterval
-        repeat: true
+    Process {
+        id: eventStream
         running: false
-        onTriggered: service.refresh()
+        command: ["sh", "-c", `${service.openHuePath} get events | stdbuf -oL jq -c`]
+
+        stdout: SplitParser {
+            onRead: data => {
+                handleEventLine(data.trim());
+            }
+        }
+
+        stderr: SplitParser {
+            onRead: data => {
+                const line = data.trim();
+                if (line) {
+                    console.error(`${service.pluginId}: Event stream error:`, line);
+                }
+            }
+        }
+
+        onExited: exitCode => {
+            console.warn(`${service.pluginId}: Event stream exited with code ${exitCode}`);
+        }
+
+        onStarted: {
+            console.info(`${service.pluginId}: Event stream started`);
+        }
     }
 
     Connections {
@@ -104,12 +125,6 @@ Item {
         initialize();
     }
 
-    onRefreshIntervalChanged: {
-        if (refreshTimer.running) {
-            refreshTimer.restart();
-        }
-    }
-
     function initialize() {
         loadSettings();
         checkOpenHueAvailable(available => {
@@ -123,7 +138,9 @@ Item {
                     return;
                 }
                 refresh();
-                refreshTimer.start();
+                Qt.callLater(() => {
+                    eventStream.running = true;
+                });
             });
         });
     }
@@ -131,7 +148,6 @@ Item {
     function loadSettings() {
         const load = key => PluginService.loadPluginData(pluginId, key) || defaults[key];
         openHuePath = load("openHuePath");
-        refreshInterval = parseInt(load("refreshInterval"));
         useDeviceIcons = load("useDeviceIcons");
     }
 
@@ -157,12 +173,20 @@ Item {
         }, 100);
     }
 
+    function setError(message) {
+        console.error(`${pluginId}: ${message}`);
+        service.isError = true;
+        service.errorMessage = message;
+    }
+
     function refresh() {
+        console.log(`${pluginId}: Calling refresh()`);
         getHueBridgeIP();
         getRooms();
         getLights();
 
         if (!service.isReady) {
+            console.log(`${pluginId}: Setting isReady to true`);
             service.isReady = true;
         }
     }
@@ -270,6 +294,97 @@ Item {
         }, 100);
     }
 
+    function handleEventLine(line) {
+        if (!line)
+            return;
+
+        var message;
+        try {
+            message = JSON.parse(line);
+        } catch (e) {
+            console.error(`${pluginId}: Failed to parse event JSON:`, e);
+            return;
+        }
+
+        if (!message.events || !Array.isArray(message.events)) {
+            return;
+        }
+
+        message.events.forEach(event => {
+            if (event.type === "update" && event.data) {
+                event.data.forEach(entityData => {
+                    handleEntityUpdate(entityData);
+                });
+            }
+        });
+    }
+
+    function handleEntityUpdate(eventData) {
+        let entity;
+
+        if (eventData.type === "light") {
+            entity = service.lights.get(eventData.id);
+        } else if (eventData.type === "grouped_light") {
+            entity = service.rooms.get(eventData.owner.rid);
+        } else {
+            return;
+        }
+
+        const entityType = eventData.type === "light" ? "light" : "room";
+        const entityId = eventData.type === "light" ? eventData.id : eventData.owner.id;
+
+        if (!entity) {
+            console.warn(`${pluginId}: Received event for unknown ${entityType}:`, entityId);
+            console.info(`${pluginId}: Triggering full refresh to sync new entities`);
+            Qt.callLater(refresh);
+            return;
+        }
+
+        applyEventDataToEntity(entity, eventData);
+    }
+
+    function applyEventDataToEntity(entity, eventData) {
+        if (eventData.on !== undefined && eventData.on.on !== undefined) {
+            entity.on = eventData.on.on;
+        }
+
+        if (eventData.dimming !== undefined && eventData.dimming.brightness !== undefined) {
+            let brightness = eventData.dimming.brightness;
+
+            if (entity.entityType === "light") {
+                entity.dimming = brightness;
+            } else if (entity.entityType === "room") {
+                entity.dimming = brightness;
+                if (entity.on && brightness > 0) {
+                    entity.lastOnDimming = brightness;
+                }
+            }
+        }
+
+        if (entity.entityType === "light") {
+            if (eventData.color !== undefined && eventData.color.xy !== undefined) {
+                entity.colorData = {
+                    xy: eventData.color.xy,
+                    gamut: entity.colorData?.gamut || eventData.color.gamut_type || 'C'
+                };
+            }
+
+            if (eventData.color_temperature !== undefined && eventData.color_temperature.mirek !== undefined) {
+                let mirek = eventData.color_temperature.mirek;
+                let valid = eventData.color_temperature.mirek_valid;
+
+                entity.temperature = {
+                    value: mirek,
+                    schema: entity.temperature?.schema || {
+                        maximum: eventData.color_temperature.mirek_schema?.mirek_maximum || 500,
+                        minimum: eventData.color_temperature.mirek_schema?.mirek_minimum || 153
+                    },
+                    valid: valid !== undefined ? valid : true
+                };
+            }
+        }
+    }
+
     function createEntity(data) {
         const component = data.entityType === "room" ? roomComponent : lightComponent;
 
@@ -318,7 +433,6 @@ Item {
     }
 
     function executeEntityCommand(commandName, entity, args, errorMessage) {
-        refreshTimer.restart();
         const fullArgs = [openHuePath, "set", entity.entityType, entity.entityId, ...args];
 
         Proc.runCommand(`${pluginId}.${commandName}`, fullArgs, (output, exitCode) => {
@@ -347,11 +461,5 @@ Item {
     function applyEntityTemperature(entity, temperature) {
         const tempValue = Math.round(temperature);
         executeEntityCommand("setEntityTemperature", entity, ["--temperature", tempValue.toString()], `Failed to set ${entity.entityType} temperature ${entity.entityId}`);
-    }
-
-    function setError(message) {
-        console.error(`${pluginId}: ${message}`);
-        service.isError = true;
-        service.errorMessage = message;
     }
 }
