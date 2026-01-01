@@ -127,7 +127,7 @@ Item {
 
     function initialize() {
         loadSettings();
-        checkOpenHueAvailable(available => {
+        checkDependencies(available => {
             if (!available) {
                 console.error(`${pluginId}: OpenHue is not available.`);
                 return;
@@ -151,11 +151,21 @@ Item {
         useDeviceIcons = load("useDeviceIcons");
     }
 
-    function checkOpenHueAvailable(onComplete) {
+    function checkDependencies(onComplete) {
         Proc.runCommand(`${pluginId}.whichOpenhue`, ["which", openHuePath], (output, exitCode) => {
             if (exitCode !== 0) {
                 setError("OpenHue is not installed. Please install it to use this plugin.");
                 ToastService.showError("OpenHue Not Found", "Please install openhue-cli or set the OpenHue Path option to use Hue Manager");
+                onComplete(false);
+                return;
+            }
+            onComplete(true);
+        }, 100);
+
+        Proc.runCommand(`${pluginId}.whichJq`, ["which", "jq"], (output, exitCode) => {
+            if (exitCode !== 0) {
+                setError("jq is not installed. Please install it to use this plugin.");
+                ToastService.showError("jq Not Found", "Please install jq to use Hue Manager");
                 onComplete(false);
                 return;
             }
