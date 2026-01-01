@@ -3,8 +3,9 @@
 A bar widget that lets you manage your Philips Hue lighting from your desktop.
 
 <p align="center">
-    <img src="./assets/screenshot.png" alt="Plugin Screenshot"/>
+    <img width="356" height="359" alt="screenshot" src="https://github.com/user-attachments/assets/f23dbbe3-8fe2-4fa2-82de-1281577457a7" />
 </p>
+
 
 **Note:** A Hue Bridge is required for [OpenHue](https://www.openhue.io/) to
 manage your devices.
