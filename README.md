@@ -35,7 +35,7 @@ cd ~/.config/DankMaterialShell/plugins
 git clone https://github.com/derethil/dms-hue-manager.git
 ```
 
-1. Install the [OpenHue CLI](https://www.openhue.io/)
+1. Install the [OpenHue CLI](https://www.openhue.io/) and `jq`
 1. Open DMS Settings (Ctrl+,)
 1. Navigate to the Plugins tab
 1. Click "Scan for plugins"
@@ -43,11 +43,12 @@ git clone https://github.com/derethil/dms-hue-manager.git
 
 ### Nix
 
-Enable the OpenHue CLI e.g.
+Enable the OpenHue CLI and `jq` e.g.
 
 ```nix
 home.packages = with pkgs; [
   openhue-cli
+  jq
 ];
 ```
 
