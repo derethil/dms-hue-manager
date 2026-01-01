@@ -14,8 +14,8 @@ manage your devices.
 - **Supports both lights and rooms**: Control an entire room or individual
   lights
 - **Guided setup**: Prompts for OpenHue bridge pairing if not already configured
-- **Auto-refresh**: Polls your Hue Bridge at a configurable interval to keep the
-  widget up to date with any changes made via the app or automations.
+- **Real-time updates**: Listens to your Hue Bridge's event stream for real-time
+  updates, instantly reflecting any changes made via the app or automations
 - **Brightness and temperature control**: Manually control a devices's
   brightness level and temperature value
 - **Color control**: Leverages the builtin DMS color picker to set a devices's
@@ -35,7 +35,7 @@ cd ~/.config/DankMaterialShell/plugins
 git clone https://github.com/derethil/dms-hue-manager.git
 ```
 
-1. Install the [OpenHue CLI](https://www.openhue.io/)
+1. Install the [OpenHue CLI](https://www.openhue.io/) and `jq`
 1. Open DMS Settings (Ctrl+,)
 1. Navigate to the Plugins tab
 1. Click "Scan for plugins"
@@ -43,11 +43,12 @@ git clone https://github.com/derethil/dms-hue-manager.git
 
 ### Nix
 
-Enable the OpenHue CLI e.g.
+Enable the OpenHue CLI and `jq` e.g.
 
 ```nix
 home.packages = with pkgs; [
   openhue-cli
+  jq
 ];
 ```
 
@@ -78,7 +79,6 @@ also stored in `~/.config/DankMaterialShell/plugin_settings.json`:
   "hueManager": {
     "openHuePath": "openhue",
     "enabled": true,
-    "refreshInterval": "5000",
     "useDeviceIcons": true
   }
 }
