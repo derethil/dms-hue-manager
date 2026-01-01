@@ -14,8 +14,8 @@ manage your devices.
 - **Supports both lights and rooms**: Control an entire room or individual
   lights
 - **Guided setup**: Prompts for OpenHue bridge pairing if not already configured
-- **Auto-refresh**: Polls your Hue Bridge at a configurable interval to keep the
-  widget up to date with any changes made via the app or automations.
+- **Real-time updates**: Listens to your Hue Bridge's event stream for real-time
+  updates, instantly reflecting any changes made via the app or automations
 - **Brightness and temperature control**: Manually control a devices's
   brightness level and temperature value
 - **Color control**: Leverages the builtin DMS color picker to set a devices's
@@ -78,7 +78,6 @@ also stored in `~/.config/DankMaterialShell/plugin_settings.json`:
   "hueManager": {
     "openHuePath": "openhue",
     "enabled": true,
-    "refreshInterval": "5000",
     "useDeviceIcons": true
   }
 }
