@@ -1,7 +1,5 @@
 # Icons Maps
 
-This file contains the mapping of Hue light archetypes and room types to their corresponding icon names.
-
 ## Lights
 
 ### Table
