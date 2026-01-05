@@ -25,8 +25,11 @@ manage your devices.
 
 ## Installation
 
-**Note**: `dms-hue-manager` is not yet in the DMS plugin registry, so manual
-installation is required.
+### DMS Settings UI
+
+1. Install the [OpenHue CLI](https://www.openhue.io/) and `jq`
+2. Open DMS Settings `Mod+,` and go to the Plugins tab then click Browse
+3. Find Hue Manager and click install
 
 ### Manually
 
@@ -36,14 +39,13 @@ git clone https://github.com/derethil/dms-hue-manager.git
 ```
 
 1. Install the [OpenHue CLI](https://www.openhue.io/) and `jq`
-1. Open DMS Settings (Ctrl+,)
-1. Navigate to the Plugins tab
+1. Open DMS Settings `Mod+,` and go to the Plugins tab
 1. Click "Scan for plugins"
 1. Enable the Hue Manager plugin
 
 ### Nix
 
-Enable the OpenHue CLI and `jq` e.g.
+Enable `openhue-cli` and `jq` e.g.
 
 ```nix
 home.packages = with pkgs; [
@@ -52,22 +54,9 @@ home.packages = with pkgs; [
 ];
 ```
 
-Then add this plugin to DMS:
-
-```nix
-dms-hue-manager = {
-  url = "github:derethil/dms-hue-manager";
-  flake = false;
-};
-```
-
-```nix
-programs.dankMaterialShell = {
-  plugins = {
-    HueManager.src = "${inputs.dms-hue-manager}"
-  };
-};
-```
+Then follow the DMS Plugin Registry
+[Nix installation](https://github.com/AvengeMedia/dms-plugin-registry/blob/master/nix/README.md)
+instructions.
 
 ## Configuration
 
