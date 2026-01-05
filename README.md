@@ -25,11 +25,13 @@ manage your devices.
 
 ## Installation
 
+First Install the [OpenHue CLI](https://www.openhue.io/) and `jq` dependencies,
+then proceed with plugin installation:
+
 ### DMS Settings UI
 
-1. Install the [OpenHue CLI](https://www.openhue.io/) and `jq`
-2. Open DMS Settings `Mod+,` and go to the Plugins tab then click Browse
-3. Find Hue Manager and click install
+1. Open DMS Settings `Mod+,` and go to the Plugins tab then click Browse
+2. Find Hue Manager and click install
 
 ### Manually
 
@@ -38,10 +40,9 @@ cd ~/.config/DankMaterialShell/plugins
 git clone https://github.com/derethil/dms-hue-manager.git
 ```
 
-1. Install the [OpenHue CLI](https://www.openhue.io/) and `jq`
 1. Open DMS Settings `Mod+,` and go to the Plugins tab
-1. Click "Scan for plugins"
-1. Enable the Hue Manager plugin
+2. Click "Scan for plugins"
+3. Enable the Hue Manager plugin
 
 ### Nix
 
