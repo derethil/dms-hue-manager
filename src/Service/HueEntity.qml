@@ -20,7 +20,7 @@ QtObject {
     // Computed properties
     readonly property bool isDimmable: dimming !== null
 
-    readonly property string icon: EntityUtils.getEntityIcon(entity, _service.useDeviceIcons)
+    property string icon: EntityUtils.getEntityIcon(entity, _service.useDeviceIcons)
 
     function togglePower() {
         entity.on = !entity.on;

@@ -148,7 +148,7 @@ Item {
     }
 
     function loadSettings() {
-        const load = key => PluginService.loadPluginData(pluginId, key) || defaults[key];
+        const load = key => PluginService.loadPluginData(pluginId, key) ?? defaults[key];
         openHuePath = load("openHuePath");
         jqPath = load("jqPath");
         useDeviceIcons = load("useDeviceIcons");
