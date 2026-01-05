@@ -42,6 +42,14 @@ PluginSettings {
                 placeholder: HueService.defaults.openHuePath
             }
 
+            StringSetting {
+                settingKey: "jqPath"
+                label: "jq Path"
+                description: "Path or name of the jq executable."
+                defaultValue: HueService.defaults.jqPath
+                placeholder: HueService.defaults.jqPath
+            }
+
             ToggleSetting {
                 settingKey: "useDeviceIcons"
                 label: "Use Device Icons"

@@ -12,10 +12,12 @@ Item {
 
     readonly property var defaults: ({
             openHuePath: "openhue",
+            jqPath: "jq",
             useDeviceIcons: true
         })
 
     property string openHuePath: defaults.openHuePath
+    property string jqPath: defaults.jqPath
     property bool useDeviceIcons: defaults.useDeviceIcons
 
     property bool isReady: false
@@ -86,7 +88,7 @@ Item {
     Process {
         id: eventStream
         running: false
-        command: ["sh", "-c", `${service.openHuePath} get events | stdbuf -oL jq -c`]
+        command: ["sh", "-c", `${service.openHuePath} get events | stdbuf -oL ${service.jqPath} -c`]
 
         stdout: SplitParser {
             onRead: data => {
@@ -148,6 +150,7 @@ Item {
     function loadSettings() {
         const load = key => PluginService.loadPluginData(pluginId, key) || defaults[key];
         openHuePath = load("openHuePath");
+        jqPath = load("jqPath");
         useDeviceIcons = load("useDeviceIcons");
     }
 
@@ -162,10 +165,10 @@ Item {
             onComplete(true);
         }, 100);
 
-        Proc.runCommand(`${pluginId}.whichJq`, ["which", "jq"], (output, exitCode) => {
+        Proc.runCommand(`${pluginId}.whichJq`, ["which", jqPath], (output, exitCode) => {
             if (exitCode !== 0) {
                 setError("jq is not installed. Please install it to use this plugin.");
-                ToastService.showError("jq Not Found", "Please install jq to use Hue Manager");
+                ToastService.showError("jq Not Found", "Please install jq or set the jq Path option to use Hue Manager");
                 onComplete(false);
                 return;
             }
@@ -223,7 +226,7 @@ Item {
             }]
         `;
 
-        getEntities("room", `${openHuePath} get room -j | jq '${jqMap}'`);
+        getEntities("room", `${openHuePath} get room -j | ${jqPath} '${jqMap}'`);
     }
 
     function getLights() {
@@ -260,7 +263,7 @@ Item {
             }]
         `;
 
-        getEntities("light", `${openHuePath} get light -j | jq '${jqMap}'`);
+        getEntities("light", `${openHuePath} get light -j | ${jqPath} '${jqMap}'`);
     }
 
     function getEntities(entityType, command) {
