@@ -326,6 +326,7 @@ Item {
         message.events.forEach(event => {
             if (event.type === "update" && event.data) {
                 event.data.forEach(entityData => {
+                    console.error(`${pluginId}: Received event for ${entityData.type} ${entityData.id}`);
                     handleEntityUpdate(entityData);
                 });
             }
@@ -337,17 +338,14 @@ Item {
 
         if (eventData.type === "light") {
             entity = service.lights.get(eventData.id);
-        } else if (eventData.type === "grouped_light") {
+        } else if (eventData.type === "grouped_light" && eventData.owner.rtype === "room") {
             entity = service.rooms.get(eventData.owner.rid);
         } else {
             return;
         }
 
-        const entityType = eventData.type === "light" ? "light" : "room";
-        const entityId = eventData.type === "light" ? eventData.id : eventData.owner.id;
-
         if (!entity) {
-            console.warn(`${pluginId}: Received event for unknown ${entityType}:`, entityId);
+            console.warn(`${pluginId}: Received event for unknown ${eventData.type}:`);
             console.info(`${pluginId}: Triggering full refresh to sync new entities`);
             Qt.callLater(refresh);
             return;

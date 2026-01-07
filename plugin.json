@@ -2,7 +2,7 @@
   "id": "hueManager",
   "name": "Hue Manager",
   "description": "Control your Philips Hue lights directly from DMS.",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "author": "derethil",
   "icon": "lightbulb_2",
   "type": "widget",
