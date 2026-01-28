@@ -1,10 +1,18 @@
 import QtQuick
 
-HueEntity {
+Entity {
     id: room
 
     property var lastOnDimming: dimming
     property var lights: []
+
+    property var scenes: []
+    property var activeScene: null
+
+    onScenesChanged: {
+        const newActiveScene = room.scenes.find(scene => scene.active) ?? null;
+        room.activeScene = newActiveScene;
+    }
 
     Component.onCompleted: {
         // API doesn't provide brightness for rooms when off - default to 100 until first refresh where entity state is known
@@ -26,12 +34,12 @@ HueEntity {
             }
         }
 
-        _service.applyEntityPower(room, room.on);
+        _service.commands.applyEntityPower(room, room.on);
     }
 
     function setBrightness(value: real) {
         if (!room.isDimmable) {
-            console.warn("Cannot set brightness on non-dimmable room:", room.name);
+            console.warn(`${_service.pluginId}: Cannot set brightness on non-dimmable room: ${room.name}`);
             return;
         }
 
@@ -41,6 +49,26 @@ HueEntity {
         }
 
         room.dimming = value;
-        _service.applyEntityBrightness(room, value);
+
+        _service.commands.applyEntityBrightness(room, value);
+    }
+
+    function activateScene(sceneId) {
+        const scene = scenes.find(s => s.id === sceneId);
+
+        if (!scene) {
+            console.warn(`${_service.pluginId}: Scene with ID ${sceneId} not found in room ${room.name}`);
+            return;
+        }
+
+        room.scenes.forEach(s => s.active = (s.id === sceneId));
+        room.activeScene = scene;
+
+        _service.commands.applyActivateScene(scene);
+    }
+
+    function disableScene() {
+        room.scenes.forEach(s => s.active = false);
+        room.activeScene = null;
     }
 }

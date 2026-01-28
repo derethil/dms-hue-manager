@@ -20,6 +20,7 @@ manage your devices.
   brightness level and temperature value
 - **Color control**: Leverages the builtin DMS color picker to set a devices's
   color directly
+- **Scenes**: Easily switch between your predefined scenes for each room
 - **Device icons**: Maps your Philips Hue icons to the closest equivalent from
   Material Symbols
 

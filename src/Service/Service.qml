@@ -29,11 +29,33 @@ Item {
     property string bridgeIP: ""
     property var rooms: new Map()
     property var lights: new Map()
+    property var sceneToRoom: new Map()
 
     property bool preserveWidgetStateOnNextOpen: false
 
-    property Component roomComponent: HueRoom {}
-    property Component lightComponent: HueLight {}
+    property Component roomComponent: Room {}
+    property Component lightComponent: Light {}
+
+    readonly property alias commands: commands
+
+    Commands {
+        id: commands
+        pluginId: service.pluginId
+        openHuePath: service.openHuePath
+        refresh: service.refresh
+    }
+
+    EventHandler {
+        id: eventHandler
+        service: service
+        pluginId: service.pluginId
+        refresh: service.refresh
+        commands: service.commands
+    }
+
+    JqMaps {
+        id: jqMaps
+    }
 
     Process {
         id: setupProcess
@@ -92,7 +114,7 @@ Item {
 
         stdout: SplitParser {
             onRead: data => {
-                handleEventLine(data.trim());
+                eventHandler.handleEventLine(data.trim());
             }
         }
 
@@ -186,12 +208,6 @@ Item {
         }, 100);
     }
 
-    function setError(message) {
-        console.error(`${pluginId}: ${message}`);
-        service.isError = true;
-        service.errorMessage = message;
-    }
-
     function refresh() {
         console.log(`${pluginId}: Calling refresh()`);
         getHueBridgeIP();
@@ -211,59 +227,19 @@ Item {
     }
 
     function getRooms() {
-        const jqMap = `
-            [.[] | {
-                id: .Id,
-                name: .Name,
-                entityType: "room",
-
-                on: .GroupedLight.HueData.on.on,
-                dimming: .GroupedLight.HueData.dimming.brightness,
-
-                archetype: (.HueData.metadata.archetype // ""),
-
-                lights: [.Devices[]? | select(.Light != null) | {id: .Light.Id, name: .Light.Name}]
-            }]
-        `;
-
-        getEntities("room", `${openHuePath} get room -j | ${jqPath} '${jqMap}'`);
+        getEntities("room", `${openHuePath} get room -j | ${jqPath} '${jqMaps.rooms}'`);
     }
 
     function getLights() {
-        const jqMap = `
-            [.[] | {
-                id: .Id,
-                name: .Name,
-                entityType: "light",
+        getEntities("light", `${openHuePath} get light -j | ${jqPath} '${jqMaps.lights}'`);
+    }
 
-                on: .HueData.on.on,
-                dimming: {
-                    dimming: .HueData.dimming.brightness,
-                    minDimming: .HueData.dimming.min_dim_level
-                },
-                color: {
-                    xy: .HueData.color.xy,
-                    gamut: .HueData.color.gamut_type
-                },
-                temperature: {
-                    value: .HueData.color_temperature.mirek,
-                    schema: {
-                        maximum: .HueData.color_temperature.mirek_schema.mirek_maximum,
-                        minimum: .HueData.color_temperature.mirek_schema.mirek_minimum
-                    },
-                    valid: .HueData.color_temperature.mirek_valid
-                },
+    function getRoom(roomId) {
+        return service.rooms.get(roomId) ?? null;
+    }
 
-                archetype: (.HueData.metadata.archetype // ""),
-
-                room: {
-                    id: .Parent.Parent.Id,
-                    name: .Parent.Parent.Name
-                }
-            }]
-        `;
-
-        getEntities("light", `${openHuePath} get light -j | ${jqPath} '${jqMap}'`);
+    function getLight(lightId) {
+        return service.lights.get(lightId) ?? null;
     }
 
     function getEntities(entityType, command) {
@@ -276,6 +252,7 @@ Item {
             }
 
             let rawEntities;
+
             try {
                 rawEntities = JSON.parse(output.trim());
             } catch (e) {
@@ -307,95 +284,6 @@ Item {
         }, 100);
     }
 
-    function handleEventLine(line) {
-        if (!line)
-            return;
-
-        var message;
-        try {
-            message = JSON.parse(line);
-        } catch (e) {
-            console.error(`${pluginId}: Failed to parse event JSON:`, e);
-            return;
-        }
-
-        if (!message.events || !Array.isArray(message.events)) {
-            return;
-        }
-
-        message.events.forEach(event => {
-            if (event.type === "update" && event.data) {
-                event.data.forEach(entityData => {
-                    console.error(`${pluginId}: Received event for ${entityData.type} ${entityData.id}`);
-                    handleEntityUpdate(entityData);
-                });
-            }
-        });
-    }
-
-    function handleEntityUpdate(eventData) {
-        let entity;
-
-        if (eventData.type === "light") {
-            entity = service.lights.get(eventData.id);
-        } else if (eventData.type === "grouped_light" && eventData.owner.rtype === "room") {
-            entity = service.rooms.get(eventData.owner.rid);
-        } else {
-            return;
-        }
-
-        if (!entity) {
-            console.warn(`${pluginId}: Received event for unknown ${eventData.type}:`);
-            console.info(`${pluginId}: Triggering full refresh to sync new entities`);
-            Qt.callLater(refresh);
-            return;
-        }
-
-        applyEventDataToEntity(entity, eventData);
-    }
-
-    function applyEventDataToEntity(entity, eventData) {
-        if (eventData.on !== undefined && eventData.on.on !== undefined) {
-            entity.on = eventData.on.on;
-        }
-
-        if (eventData.dimming !== undefined && eventData.dimming.brightness !== undefined) {
-            let brightness = eventData.dimming.brightness;
-
-            if (entity.entityType === "light") {
-                entity.dimming = brightness;
-            } else if (entity.entityType === "room") {
-                entity.dimming = brightness;
-                if (entity.on && brightness > 0) {
-                    entity.lastOnDimming = brightness;
-                }
-            }
-        }
-
-        if (entity.entityType === "light") {
-            if (eventData.color !== undefined && eventData.color.xy !== undefined) {
-                entity.colorData = {
-                    xy: eventData.color.xy,
-                    gamut: entity.colorData?.gamut || eventData.color.gamut_type || 'C'
-                };
-            }
-
-            if (eventData.color_temperature !== undefined && eventData.color_temperature.mirek !== undefined) {
-                let mirek = eventData.color_temperature.mirek;
-                let valid = eventData.color_temperature.mirek_valid;
-
-                entity.temperature = {
-                    value: mirek,
-                    schema: entity.temperature?.schema || {
-                        maximum: eventData.color_temperature.mirek_schema?.mirek_maximum || 500,
-                        minimum: eventData.color_temperature.mirek_schema?.mirek_minimum || 153
-                    },
-                    valid: valid !== undefined ? valid : true
-                };
-            }
-        }
-    }
-
     function createEntity(data) {
         const component = data.entityType === "room" ? roomComponent : lightComponent;
 
@@ -420,57 +308,45 @@ Item {
         target.on = data.on;
 
         if (data.entityType === "light") {
-            target.dimming = data.dimming.dimming;
-            target.minDimming = data.dimming.minDimming * 100;
-            target.room = data.room ?? null;
-
-            if (data.color.gamut !== null && data.color.xy !== null) {
-                target.colorData = data.color;
-            }
-
-            if (data.temperature.valid !== null) {
-                target.temperature = data.temperature ?? null;
-            }
-        }
-
-        if (data.entityType === "room") {
-            target.dimming = data.dimming;
-            target.lights = data.lights || [];
-
-            if (isCreating) {
-                target.lastOnDimming = data.on ? data.dimming : 100;
-            }
+            applyLightData(target, data);
+        } else if (data.entityType === "room") {
+            applyRoomData(target, data, isCreating);
         }
     }
 
-    function executeEntityCommand(commandName, entity, args, errorMessage) {
-        const fullArgs = [openHuePath, "set", entity.entityType, entity.entityId, ...args];
+    function applyLightData(target, data) {
+        target.dimming = data.dimming.dimming;
+        target.minDimming = data.dimming.minDimming * 100;
+        target.room = data.room ?? null;
 
-        Proc.runCommand(`${pluginId}.${commandName}`, fullArgs, (output, exitCode) => {
-            if (output !== "" || exitCode !== 0) {
-                ToastService.showError("Hue Manager Error", errorMessage);
-                console.error(`${pluginId}: ${errorMessage}:`, output);
-                Qt.callLater(refresh);
-            }
-        }, 100);
+        if (data.color?.gamut !== null && data.color?.xy !== null) {
+            target.colorData = data.color;
+        }
+
+        if (data.temperature?.valid !== null) {
+            target.temperature = data.temperature ?? null;
+        }
     }
 
-    function applyEntityPower(entity, turnOn) {
-        const state = turnOn ? "--on" : "--off";
-        executeEntityCommand("setEntityPower", entity, [state], `Failed to toggle ${entity.entityType} ${entity.entityId}`);
+    function applyRoomData(target, data, isCreating) {
+        target.dimming = data.dimming;
+        target.lights = data.lights || [];
+
+        if (isCreating) {
+            target.lastOnDimming = data.on ? data.dimming : 100;
+        }
+
+        if (data.scenes?.length > 0) {
+            target.scenes = data.scenes;
+            data.scenes.forEach(scene => {
+                service.sceneToRoom.set(scene.id, data.id);
+            });
+        }
     }
 
-    function applyEntityBrightness(entity, brightness) {
-        const brightnessValue = Math.round(brightness);
-        executeEntityCommand("setEntityBrightness", entity, ["--brightness", brightnessValue.toString()], `Failed to set ${entity.entityType} brightness ${entity.entityId}`);
-    }
-
-    function applyEntityColor(entity, color) {
-        executeEntityCommand("setEntityColor", entity, ["--rgb", color], `Failed to set ${entity.entityType} color ${entity.entityId}`);
-    }
-
-    function applyEntityTemperature(entity, temperature) {
-        const tempValue = Math.round(temperature);
-        executeEntityCommand("setEntityTemperature", entity, ["--temperature", tempValue.toString()], `Failed to set ${entity.entityType} temperature ${entity.entityId}`);
+    function setError(message) {
+        console.error(`${pluginId}: ${message}`);
+        service.isError = true;
+        service.errorMessage = message;
     }
 }

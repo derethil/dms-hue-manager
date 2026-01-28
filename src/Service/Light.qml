@@ -1,7 +1,7 @@
 import QtQuick
 import "../utils/Color.js" as ColorUtils
 
-HueEntity {
+Entity {
     id: light
 
     property var room
@@ -35,7 +35,8 @@ HueEntity {
         }
 
         light.color = newColor;
-        _service.applyEntityColor(light, newColor);
+        _service.getRoom(room.id)?.disableScene();
+        _service.commands.applyEntityColor(light, newColor);
     }
 
     function setTemperature(newTemperature: real) {
@@ -50,6 +51,7 @@ HueEntity {
             valid: true
         };
 
-        _service.applyEntityTemperature(light, newTemperature);
+        _service.getRoom(room.id)?.disableScene();
+        _service.commands.applyEntityTemperature(light, newTemperature);
     }
 }

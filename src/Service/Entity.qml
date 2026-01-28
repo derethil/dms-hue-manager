@@ -24,7 +24,7 @@ QtObject {
 
     function togglePower() {
         entity.on = !entity.on;
-        _service.applyEntityPower(entity, entity.on);
+        _service.commands.applyEntityPower(entity, entity.on);
     }
 
     function setBrightness(value: real) {
@@ -34,6 +34,6 @@ QtObject {
         }
 
         entity.dimming = value;
-        _service.applyEntityBrightness(entity, value);
+        _service.commands.applyEntityBrightness(entity, value);
     }
 }
