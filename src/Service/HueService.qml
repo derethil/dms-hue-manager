@@ -342,10 +342,14 @@ Item {
         }
 
         message.events.forEach(event => {
+            console.warn(`${pluginId}: Received event:`, JSON.stringify(event));
             if (event.type === "update" && event.data) {
                 event.data.forEach(entityData => {
                     handleEntityUpdate(entityData);
                 });
+            } else if (event.type === "add" || event.type === "delete") {
+                console.info(`${pluginId}: Received ${event.type} event, triggering full refresh to sync data`);
+                Qt.callLater(refresh);
             }
         });
     }
@@ -357,6 +361,9 @@ Item {
             entity = service.lights.get(eventData.id);
         } else if (eventData.type === "grouped_light" && eventData.owner.rtype === "room") {
             entity = service.rooms.get(eventData.owner.rid);
+        } else if (eventData.type === "scene") {
+            handleSceneUpdate(eventData);
+            return;
         } else {
             return;
         }
@@ -369,6 +376,32 @@ Item {
         }
 
         applyEventDataToEntity(entity, eventData);
+    }
+
+    function handleSceneUpdate(eventData) {
+        for (const [roomId, room] of service.rooms) {
+            const sceneIndex = room.scenes.findIndex(s => s.id === eventData.id);
+
+            if (sceneIndex !== -1) {
+                const updatedScenes = [...room.scenes];
+
+                if (eventData.metadata?.name !== undefined) {
+                    updatedScenes[sceneIndex].name = eventData.metadata.name;
+                }
+
+                if (eventData.status?.active !== undefined) {
+                    updatedScenes[sceneIndex].active = (eventData.status.active !== "inactive");
+                }
+
+                room.scenes = updatedScenes;
+                console.info(`${pluginId}: Updated scene ${eventData.id} in room ${room.name}`);
+                return;
+            }
+        }
+
+        console.warn(`${pluginId}: Received scene event for unknown scene ${eventData.id}`);
+        console.info(`${pluginId}: Triggering full refresh to sync scene changes`);
+        Qt.callLater(refresh);
     }
 
     function applyEventDataToEntity(entity, eventData) {
