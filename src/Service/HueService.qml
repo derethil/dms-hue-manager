@@ -29,6 +29,7 @@ Item {
     property string bridgeIP: ""
     property var rooms: new Map()
     property var lights: new Map()
+    property var sceneToRoom: new Map()
 
     property bool preserveWidgetStateOnNextOpen: false
 
@@ -347,9 +348,14 @@ Item {
                 event.data.forEach(entityData => {
                     handleEntityUpdate(entityData);
                 });
-            } else if (event.type === "add" || event.type === "delete") {
-                console.info(`${pluginId}: Received ${event.type} event, triggering full refresh to sync data`);
-                Qt.callLater(refresh);
+            } else if (event.type === "add" && event.data) {
+                event.data.forEach(entityData => {
+                    handleEntityAdd(entityData);
+                });
+            } else if (event.type === "delete" && event.data) {
+                event.data.forEach(entityData => {
+                    handleEntityDelete(entityData);
+                });
             }
         });
     }
@@ -379,29 +385,89 @@ Item {
     }
 
     function handleSceneUpdate(eventData) {
-        for (const [roomId, room] of service.rooms) {
-            const sceneIndex = room.scenes.findIndex(s => s.id === eventData.id);
-
-            if (sceneIndex !== -1) {
-                const updatedScenes = [...room.scenes];
-
-                if (eventData.metadata?.name !== undefined) {
-                    updatedScenes[sceneIndex].name = eventData.metadata.name;
-                }
-
-                if (eventData.status?.active !== undefined) {
-                    updatedScenes[sceneIndex].active = (eventData.status.active !== "inactive");
-                }
-
-                room.scenes = updatedScenes;
-                console.info(`${pluginId}: Updated scene ${eventData.id} in room ${room.name}`);
-                return;
-            }
+        const roomId = service.sceneToRoom.get(eventData.id);
+        if (!roomId) {
+            console.warn(`${pluginId}: Received scene event for unknown scene ${eventData.id}`);
+            console.info(`${pluginId}: Triggering full refresh to sync scene changes`);
+            Qt.callLater(refresh);
+            return;
         }
 
-        console.warn(`${pluginId}: Received scene event for unknown scene ${eventData.id}`);
-        console.info(`${pluginId}: Triggering full refresh to sync scene changes`);
-        Qt.callLater(refresh);
+        const room = service.rooms.get(roomId);
+        if (!room) {
+            console.warn(`${pluginId}: Scene ${eventData.id} maps to unknown room ${roomId}`);
+            Qt.callLater(refresh);
+            return;
+        }
+
+        const sceneIndex = room.scenes.findIndex(s => s.id === eventData.id);
+        if (sceneIndex === -1) {
+            console.warn(`${pluginId}: Scene ${eventData.id} not found in room ${room.name} scenes array`);
+            Qt.callLater(refresh);
+            return;
+        }
+
+        const updatedScenes = [...room.scenes];
+
+        if (eventData.metadata?.name !== undefined) {
+            updatedScenes[sceneIndex].name = eventData.metadata.name;
+        }
+
+        if (eventData.status?.active !== undefined) {
+            updatedScenes[sceneIndex].active = (eventData.status.active !== "inactive");
+        }
+
+        room.scenes = updatedScenes;
+        console.info(`${pluginId}: Updated scene ${eventData.id} in room ${room.name}`);
+    }
+
+    function handleEntityAdd(eventData) {
+        if (eventData.type === "scene" || eventData.type === "light" || eventData.type === "room") {
+            console.info(`${pluginId}: New ${eventData.type} ${eventData.id} added, triggering full refresh`);
+            Qt.callLater(refresh);
+        }
+    }
+
+    function handleEntityDelete(eventData) {
+        if (eventData.type === "scene") {
+            const roomId = service.sceneToRoom.get(eventData.id);
+            if (!roomId) {
+                console.warn(`${pluginId}: Received delete event for unknown scene ${eventData.id}`);
+                return;
+            }
+
+            const room = service.rooms.get(roomId);
+            if (!room) {
+                console.warn(`${pluginId}: Scene ${eventData.id} maps to unknown room ${roomId}`);
+                service.sceneToRoom.delete(eventData.id);
+                return;
+            }
+
+            const sceneIndex = room.scenes.findIndex(s => s.id === eventData.id);
+            if (sceneIndex !== -1) {
+                const updatedScenes = [...room.scenes];
+                updatedScenes.splice(sceneIndex, 1);
+                room.scenes = updatedScenes;
+                service.sceneToRoom.delete(eventData.id);
+                console.info(`${pluginId}: Deleted scene ${eventData.id} from room ${room.name}`);
+            } else {
+                console.warn(`${pluginId}: Scene ${eventData.id} not found in room ${room.name} scenes array`);
+                service.sceneToRoom.delete(eventData.id);
+            }
+        } else if (eventData.type === "light" || eventData.type === "room") {
+            const entityMap = eventData.type === "light" ? service.lights : service.rooms;
+            const entity = entityMap.get(eventData.id);
+
+            if (entity) {
+                entity.destroy();
+                const updatedMap = new Map(entityMap);
+                updatedMap.delete(eventData.id);
+                service[eventData.type === "light" ? "lights" : "rooms"] = updatedMap;
+                console.info(`${pluginId}: Deleted ${eventData.type} ${eventData.id}`);
+            } else {
+                console.warn(`${pluginId}: Received delete event for unknown ${eventData.type} ${eventData.id}`);
+            }
+        }
     }
 
     function applyEventDataToEntity(entity, eventData) {
@@ -493,6 +559,9 @@ Item {
 
             if (data.scenes.length > 0) {
                 target.scenes = data.scenes;
+                data.scenes.forEach(scene => {
+                    service.sceneToRoom.set(scene.id, data.id);
+                });
             }
         }
     }
