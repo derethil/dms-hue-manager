@@ -1,1 +1,1 @@
-singleton HueService 1.0 ../Service/HueService.qml
+singleton HueService 1.0 ../Service/Service.qml

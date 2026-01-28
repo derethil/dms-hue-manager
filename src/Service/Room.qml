@@ -1,6 +1,6 @@
 import QtQuick
 
-HueEntity {
+Entity {
     id: room
 
     property var lastOnDimming: dimming
@@ -34,7 +34,7 @@ HueEntity {
             }
         }
 
-        _service.applyEntityPower(room, room.on);
+        _service.commands.applyEntityPower(room, room.on);
     }
 
     function setBrightness(value: real) {
@@ -50,14 +50,11 @@ HueEntity {
 
         room.dimming = value;
 
-        _service.applyEntityBrightness(room, value);
+        _service.commands.applyEntityBrightness(room, value);
     }
 
     function activateScene(sceneId) {
         const scene = scenes.find(s => s.id === sceneId);
-
-        console.warn("SCENE ID", sceneId);
-        console.warn("FOUND SCENE", JSON.stringify(scene));
 
         if (!scene) {
             console.warn(`${_service.pluginId}: Scene with ID ${sceneId} not found in room ${room.name}`);
@@ -67,7 +64,7 @@ HueEntity {
         room.scenes.forEach(s => s.active = (s.id === sceneId));
         room.activeScene = scene;
 
-        _service.applyActivateScene(scene);
+        _service.commands.applyActivateScene(scene);
     }
 
     function disableScene() {
