@@ -126,6 +126,8 @@ PluginComponent {
 
                 SwipeView {
                     id: swipeView
+                    anchors.fill: parent
+                    clip: true
                     currentIndex: root.activeView === "rooms" ? 0 : 1
 
                     Component.onCompleted: {
