@@ -71,4 +71,8 @@ Entity {
         room.scenes.forEach(s => s.active = false);
         room.activeScene = null;
     }
+
+    function setAccent(color) {
+        _service.commands.applyRoomAccent(room, color);
+    }
 }

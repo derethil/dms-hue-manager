@@ -23,6 +23,10 @@ manage your devices.
 - **Scenes**: Easily switch between your predefined scenes for each room
 - **Device icons**: Maps your Philips Hue icons to the closest equivalent from
   Material Symbols
+- **Theme accent sync**: Automatically syncs your lights to the current DMS
+  accent colour whenever the theme changes, light/dark mode toggles, or
+  Matugen generates new colours from your wallpaper. You can select which
+  rooms to sync, or leave it empty to sync all rooms.
 
 ## Installation
 
@@ -71,7 +75,16 @@ also stored in `~/.config/DankMaterialShell/plugin_settings.json`:
     "openHuePath": "openhue",
     "jqPath": "jq",
     "enabled": true,
-    "useDeviceIcons": true
+    "useDeviceIcons": true,
+    "autoSyncAccent": false
   }
 }
 ```
+
+### Theme Sync
+
+| Setting | Description |
+|---------|-------------|
+| **Auto-Sync Accent Colour** | When enabled, your colour-capable lights automatically update to match the DMS accent colour on theme changes |
+| **Sync Rooms** | Choose specific rooms to sync (empty selection = all rooms) |
+| **Sync Now** | Manually apply the current accent colour to your lights |

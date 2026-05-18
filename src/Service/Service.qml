@@ -20,6 +20,9 @@ Item {
     property string jqPath: defaults.jqPath
     property bool useDeviceIcons: defaults.useDeviceIcons
 
+    // Read from PluginService settings, not a local property
+    readonly property bool autoSyncAccent: PluginService.loadPluginData(pluginId, "autoSyncAccent") ?? false
+
     property bool isReady: false
     property bool isError: false
     property string errorMessage: ""
@@ -43,6 +46,52 @@ Item {
         pluginId: service.pluginId
         openHuePath: service.openHuePath
         refresh: service.refresh
+    }
+
+    Connections {
+        target: Theme
+
+        function onCurrentThemeDataChanged() {
+            if (service.autoSyncAccent && service.isReady && Theme.currentThemeData?.primary) {
+                console.log(`${pluginId}: Auto-sync triggered by theme data change`);
+                service.syncAllToAccent();
+            }
+        }
+
+        function onCurrentThemeChanged() {
+            if (service.autoSyncAccent && service.isReady) {
+                console.log(`${pluginId}: Auto-sync triggered by theme change to "${Theme.currentTheme}"`);
+                // Defer sync until the next event loop tick so that
+                // Theme.currentThemeData has finished updating.
+                // onCurrentThemeDataChanged fires separately, but when
+                // the theme name changes we need to wait for the new
+                // theme's colour data to be resolved before syncing.
+                Qt.callLater(() => {
+                    if (Theme.currentThemeData?.primary) {
+                        service.syncAllToAccent();
+                    }
+                });
+            }
+        }
+
+        function onIsLightModeChanged() {
+            if (service.autoSyncAccent && service.isReady && Theme.currentThemeData?.primary) {
+                console.log(`${pluginId}: Auto-sync triggered by light mode change`);
+                service.syncAllToAccent();
+            }
+        }
+    }
+
+    // Also listen for matugen color generation completion
+    Connections {
+        target: Theme
+
+        function onMatugenCompleted(mode, result) {
+            if (service.autoSyncAccent && service.isReady && Theme.currentThemeData?.primary) {
+                console.log(`${pluginId}: Auto-sync triggered by matugen completion`);
+                service.syncAllToAccent();
+            }
+        }
     }
 
     EventHandler {
@@ -141,6 +190,10 @@ Item {
         function onPluginDataChanged(pluginId) {
             if (pluginId === service.pluginId) {
                 service.loadSettings();
+                // autoSyncAccent is a readonly binding, so re-check it when data changes
+                if (PluginService.loadPluginData(service.pluginId, "autoSyncAccent") && service.isReady && Theme.currentThemeData?.primary) {
+                    service.syncAllToAccent();
+                }
             }
         }
     }
@@ -174,6 +227,27 @@ Item {
         openHuePath = load("openHuePath");
         jqPath = load("jqPath");
         useDeviceIcons = load("useDeviceIcons");
+        loadSyncRoomIds();
+    }
+
+    function loadSyncRoomIds() {
+        const saved = PluginService.loadPluginData(pluginId, "syncRoomIds");
+        if (saved && Array.isArray(saved)) {
+            service._syncRoomIds = new Set(saved);
+        } else {
+            service._syncRoomIds = new Set();
+            // Fill with all current room IDs so checkboxes have explicit state
+            if (service.rooms.size > 0) {
+                for (const room of service.rooms.values()) {
+                    service._syncRoomIds.add(room.entityId);
+                }
+                service.saveSyncRoomIds();
+            }
+        }
+    }
+
+    function saveSyncRoomIds() {
+        PluginService.savePluginData(pluginId, "syncRoomIds", Array.from(service._syncRoomIds));
     }
 
     function checkDependencies(onComplete) {
@@ -281,6 +355,14 @@ Item {
             });
 
             service[property] = updatedEntities;
+
+            // After rooms are loaded, ensure _syncRoomIds is initialized
+            if (entityType === "room" && service._syncRoomIds.size === 0 && service.rooms.size > 0) {
+                for (const room of service.rooms.values()) {
+                    service._syncRoomIds.add(room.entityId);
+                }
+                service.saveSyncRoomIds();
+            }
         }, 100);
     }
 
@@ -341,6 +423,44 @@ Item {
             data.scenes.forEach(scene => {
                 service.sceneToRoom.set(scene.id, data.id);
             });
+        }
+    }
+
+    property var _syncRoomIds: new Set()  // set of room IDs to sync; empty = all rooms
+
+    function syncAllToAccent(roomId) {
+        if (!service.isReady) {
+            console.warn(`${pluginId}: Cannot sync accent - service is not ready`);
+            return;
+        }
+
+        const accentColor = Theme.currentThemeData?.primary;
+        if (!accentColor) {
+            console.warn(`${pluginId}: Cannot sync accent - no accent colour available`);
+            return;
+        }
+
+        if (roomId) {
+            const room = service.rooms.get(roomId);
+
+            if (!room) {
+                console.warn(`${pluginId}: Room ${roomId} not found`);
+                return;
+            }
+
+            room.setAccent(accentColor);
+            console.log(`${pluginId}: Synced room "${room.name}" to accent colour ${accentColor}`);
+        } else {
+            const allRooms = Array.from(service.rooms.values());
+            const selectedRooms = Array.from(service._syncRoomIds).map(rId => service.rooms.get(rId)).filter(r => r);
+            const roomsToSync = service._syncRoomIds.size > 0 ? selectedRooms : allRooms;
+
+            roomsToSync.forEach(room => {
+                console.log(`${pluginId}:   syncing room "${room.name}"`);
+                room.setAccent(accentColor);
+            });
+
+            console.log(`${pluginId}: Synced ${roomsToSync.length} room(s) to accent colour ${accentColor}`);
         }
     }
 
