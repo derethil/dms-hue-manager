@@ -31,13 +31,6 @@ StyledRect {
                 const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
                 return EntityUtils.dimColorByBrightness(baseColor, root.entity);
             }
-
-            Behavior on color {
-                ColorAnimation {
-                    duration: Theme.shorterDuration
-                    easing.type: Theme.standardEasing
-                }
-            }
         }
 
         MouseArea {

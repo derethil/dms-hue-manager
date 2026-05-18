@@ -43,13 +43,6 @@ Item {
                 name: actionItem.icon
                 size: Theme.iconSizeSmall
                 color: actionItem.iconColor
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Theme.shorterDuration
-                        easing.type: Theme.standardEasing
-                    }
-                }
             }
 
             StyledText {
