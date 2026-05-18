@@ -33,6 +33,21 @@ function HueXYToHex(x, y, brightness = 1.0, gamutType = 'C') {
 }
 
 /**
+ * Averages an array of color entries and returns the resulting hex color string.
+ * @param {{ xy: { x: number, y: number }, gamut: string, dimming: number }[]} colors
+ */
+function averageLightColors(colors) {
+    const valid = colors.filter(c => c?.xy);
+    if (valid.length === 0) return null;
+
+    const avgX = valid.reduce((s, c) => s + c.xy.x, 0) / valid.length;
+    const avgY = valid.reduce((s, c) => s + c.xy.y, 0) / valid.length;
+    const avgDimming = valid.reduce((s, c) => s + c.dimming, 0) / valid.length;
+
+    return HueXYToHex(avgX, avgY, avgDimming / 100, valid[0].gamut);
+}
+
+/**
  * Scales RGB channels to fit into [0,1] range
  * without losing relative hue balance.
  */

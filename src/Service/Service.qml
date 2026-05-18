@@ -448,7 +448,7 @@ Item {
                 return;
             }
 
-            room.setAccent(accentColor);
+            room.setColor(accentColor);
             console.log(`${pluginId}: Synced room "${room.name}" to accent colour ${accentColor}`);
         } else {
             const allRooms = Array.from(service.rooms.values());
@@ -457,7 +457,7 @@ Item {
 
             roomsToSync.forEach(room => {
                 console.log(`${pluginId}:   syncing room "${room.name}"`);
-                room.setAccent(accentColor);
+                room.setColor(accentColor);
             });
 
             console.log(`${pluginId}: Synced ${roomsToSync.length} room(s) to accent colour ${accentColor}`);

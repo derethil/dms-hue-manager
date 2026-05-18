@@ -1,10 +1,18 @@
 import QtQuick
+import "../utils/Color.js" as ColorUtils
 
 Entity {
     id: room
 
     property var lastOnDimming: dimming
     property var lights: []
+    property bool isColorCapable: lights.some(light => _service.lights.get(light.id)?.isColorCapable ?? false)
+    property var color: ColorUtils.averageLightColors(
+        lights
+            .map(l => _service.lights.get(l.id))
+            .filter(l => l?.isColorCapable && l.colorData?.xy)
+            .map(l => ({ xy: l.colorData.xy, gamut: l.colorData.gamut, dimming: l.dimming }))
+    )
 
     property var scenes: []
     property var activeScene: null
@@ -72,7 +80,7 @@ Entity {
         room.activeScene = null;
     }
 
-    function setAccent(color) {
+    function setColor(color) {
         _service.commands.applyRoomAccent(room, color);
     }
 }

@@ -130,7 +130,7 @@ Item {
         // LIGHT-SPECIFIC ACTIONS
 
         EntityAction {
-            visible: root.entity.entityType === "light" && root.entity.isColorCapable
+            visible: root.entity.isColorCapable
             iconColor: {
                 if (root.entity.temperature?.valid) {
                     return EntityUtils.dimColorByBrightness(Theme.surfaceText, root.entity);
