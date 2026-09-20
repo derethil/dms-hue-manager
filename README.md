@@ -2,6 +2,11 @@
 
 A bar widget that lets you manage your Philips Hue lighting from your desktop.
 
+> [!WARNING]
+> **This project is no longer maintained.**
+>
+> I have switched to [Noctalia](https://github.com/noctalia-dev/noctalia-shell), so this repository will not receive further updates or support.
+
 <p align="center">
     <img src="./assets/screenshot.png" alt="Plugin Screenshot"/>
 </p>
