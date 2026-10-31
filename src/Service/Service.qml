@@ -398,7 +398,7 @@ Item {
 
     function applyLightData(target, data) {
         target.dimming = data.dimming.dimming;
-        target.minDimming = data.dimming.minDimming * 100;
+        target.minDimming = data.dimming.minDimming ?? 0;
         target.room = data.room ?? null;
 
         if (data.color?.gamut !== null && data.color?.xy !== null) {

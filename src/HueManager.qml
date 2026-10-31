@@ -25,7 +25,7 @@ PluginComponent {
         root.expandedEntityIds = newSet;  // Reassign to trigger QML reactivity
     }
 
-    popoutWidth: 350
+    popoutWidth: Theme.fontSizeMedium * 32
     popoutHeight: 500
 
     Component.onCompleted: {

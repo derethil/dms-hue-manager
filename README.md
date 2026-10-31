@@ -25,7 +25,9 @@ manage your devices.
   brightness level and temperature value
 - **Color control**: Leverages the builtin DMS color picker to set a devices's
   color directly
-- **Scenes**: Easily switch between your predefined scenes for each room
+- **Scenes**: Choose room presets from a four-column, two-row grid with colour
+  previews and an active-scene indicator. Collections of more than eight scenes
+  use previous/next pages; blank slots keep smaller collections aligned.
 - **Device icons**: Maps your Philips Hue icons to the closest equivalent from
   Material Symbols
 - **Theme accent sync**: Automatically syncs your lights to the current DMS
@@ -33,7 +35,17 @@ manage your devices.
   Matugen generates new colours from your wallpaper. You can select which
   rooms to sync, or leave it empty to sync all rooms.
 
+### Scene presets
+
+![Four-column, two-row scene grid](./assets/scene-grid.png)
+
+Demonstration scenes. Each room shows eight slots per page; hover a card to
+read its full name. Scene colours come from the saved scene palette and
+light actions.
+
 ## Installation
+
+Requires DMS **2.0 or later** for the native scene-grid widgets.
 
 First Install the [OpenHue CLI](https://www.openhue.io/) and `jq` dependencies,
 then proceed with plugin installation:
@@ -93,3 +105,16 @@ also stored in `~/.config/DankMaterialShell/plugin_settings.json`:
 | **Auto-Sync Accent Colour** | When enabled, your colour-capable lights automatically update to match the DMS accent colour on theme changes |
 | **Sync Rooms** | Choose specific rooms to sync (empty selection = all rooms) |
 | **Sync Now** | Manually apply the current accent colour to your lights |
+
+## Development checks
+
+With Node.js 18 or later and `jq` installed, run:
+
+```bash
+node --test tests/scenes.test.cjs
+```
+
+The tests cover pagination boundaries, colour previews, and OpenHue's
+single-object and array JSON responses. On a running DMS session, also check
+that room and lamp brightness sliders retain a usable range, card clicks
+activate the intended scene, and both theme modes remain readable.

@@ -238,30 +238,14 @@ Item {
 
         // ROOM-SPECIFIC ACTIONS
 
-        EntityAction {
-            id: sceneAction
+        ScenePresets {
             visible: root.entity.entityType === "room" && (root.entity.scenes?.length || 0) > 0
-            iconColor: {
-                const baseColor = root.entity.on ? Theme.primary : Theme.surfaceText;
-                return EntityUtils.dimColorByBrightness(baseColor, root.entity);
-            }
-            icon: "auto_awesome_motion"
-            label: "Scene"
-
-            DankDropdown {
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.right: parent.right
-                anchors.rightMargin: Theme.spacingL
-                width: 150
-                options: root.entity.scenes?.map(scene => scene.name) ?? []
-                currentValue: root.entity.activeScene?.name ?? "None"
-                onValueChanged: newValue => {
-                    const selectedScene = root.entity.scenes.find(scene => scene.name === newValue);
-                    if (selectedScene) {
-                        root.entity.activateScene(selectedScene.id);
-                    }
-                }
-            }
+            entity: root.entity
+            Layout.fillWidth: true
+            Layout.leftMargin: Theme.spacingL
+            Layout.rightMargin: Theme.spacingL
+            Layout.topMargin: Theme.spacingS
+            Layout.bottomMargin: Theme.spacingS
         }
 
         EntityAction {
