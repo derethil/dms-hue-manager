@@ -2,7 +2,7 @@ import QtQuick
 
 QtObject {
     readonly property string rooms: `
-        [.[] | {
+        [(if type == "array" then .[] else . end) | {
             id: .Id,
             name: .Name,
             entityType: "room",
@@ -33,7 +33,7 @@ QtObject {
     `
 
     readonly property string lights: `
-        [.[] | {
+        [(if type == "array" then .[] else . end) | {
             id: .Id,
             name: .Name,
             entityType: "light",
