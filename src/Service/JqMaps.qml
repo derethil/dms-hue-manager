@@ -15,7 +15,15 @@ QtObject {
                 {
                     id: .Id,
                     name: .Name,
-                    active: (.HueData.status.active != "inactive")
+                    active: (.HueData.status.active != "inactive"),
+                    preview: (
+                        [.HueData.palette.color[]? | {xy: .color.xy}] +
+                        [.HueData.palette.color_temperature[]? | {temperature: .color_temperature.mirek}] +
+                        [.HueData.actions[]?.action |
+                            if .color.xy != null then {xy: .color.xy}
+                            elif .color_temperature.mirek != null then {temperature: .color_temperature.mirek}
+                            else empty end]
+                    )
                 }
             ],
 

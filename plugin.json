@@ -8,5 +8,6 @@
   "type": "widget",
   "component": "./src/HueManager.qml",
   "settings": "./src/HueSettings.qml",
-  "permissions": ["settings_read", "settings_write"]
+  "permissions": ["settings_read", "settings_write"],
+  "requires_dms": ">=2.0.0"
 }
